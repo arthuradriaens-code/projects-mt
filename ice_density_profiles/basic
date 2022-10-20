@@ -1,0 +1,2 @@
+python simulate.py 1 events/1e18_n1e4.hdf5 example_config/surface_station_1GHz.json example_config/config.yaml output.hdf5
+

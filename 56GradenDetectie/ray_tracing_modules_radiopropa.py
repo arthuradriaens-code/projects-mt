@@ -1,0 +1,42 @@
+from NuRadioMC.SignalProp import radioproparaytracing
+from NuRadioMC.utilities import medium
+from NuRadioReco.utilities import units
+import matplotlib.pyplot as plt
+import numpy as np
+import logging
+logging.basicConfig()
+
+logger = logging.getLogger('ray_tracing_modules')
+
+# Let us work on the y = 0 plane
+final_point = np.array( [0., 0., -100.] ) * units.m
+xcoordinates = -np.arange(60,100,0.1)
+
+def CalcAngleToGround(a):
+    lena = np.sqrt(np.dot(a,a)) #normalize
+    return np.arccos(np.dot(a,np.array([0,0,-1]))/lena)
+def degreetorad(deg):
+    return deg*np.pi/180
+
+AngleToFind = degreetorad(56)
+print(AngleToFind)
+paths = []
+times = []
+distances = []
+
+for xcoordinate in xcoordinates:
+    prop = radioproparaytracing.radiopropa_ray_tracing(medium.greenland_simple(), attenuation_model='GL1')
+    start_point = np.array([xcoordinate,0.,-7.])*units.m
+    prop.set_start_and_end_point(start_point, final_point)
+    prop.find_solutions()
+    SolNumber = prop.get_number_of_solutions()
+
+    for Sol in range(SolNumber):
+            LaunchVector = prop.get_launch_vector(Sol)
+            Angle = CalcAngleToGround(LaunchVector)
+            if AngleToFind-0.01 < Angle < AngleToFind+0.01:
+                print('found!')
+                paths.append(prop.get_path(Sol))
+                times.append(prop.get_travel_time(Sol))
+                distances.append(-xcoordinate)
+    prop.reset_solutions()
