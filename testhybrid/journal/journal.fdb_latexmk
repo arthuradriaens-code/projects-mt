@@ -1,12 +1,12 @@
 # Fdb version 3
-["bibtex journal"] 1666196550 "journal.aux" "journal.bbl" "journal" 1666196810
+["bibtex journal"] 1666196550 "journal.aux" "journal.bbl" "journal" 1666686941
   "/usr/share/texmf-dist/bibtex/bst/base/plain.bst" 1650183167 20613 bd3fbfa9f64872b81ac57a0dd2ed855f ""
-  "journal.aux" 1666196810 2193 b1ed21b62f1f85379d822d626ef91161 "pdflatex"
+  "journal.aux" 1666686941 2193 b1ed21b62f1f85379d822d626ef91161 "pdflatex"
   "sources.bib" 1664376673 565 790f4b53b32ba60528060ac91786f486 ""
   (generated)
   "journal.bbl"
   "journal.blg"
-["pdflatex"] 1666196808 "journal.tex" "journal.pdf" "journal" 1666196810
+["pdflatex"] 1666686940 "journal.tex" "journal.pdf" "journal" 1666686941
   "/usr/share/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1650183167 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/share/texmf-dist/fonts/map/fontname/texfonts.map" 1650183167 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texmf-dist/fonts/tfm/jknappen/ec/tcrm1000.tfm" 1650183167 1536 e07581a4bb3136ece9eeb4c3ffab8233 ""
@@ -84,15 +84,15 @@
   "/usr/share/texmf-dist/tex/latex/rerunfilecheck/rerunfilecheck.sty" 1650183167 9715 b051d5b493d9fe5f4bc251462d039e5f ""
   "/usr/share/texmf-dist/tex/latex/url/url.sty" 1650183167 12796 8edb7d69a20b857904dd0ea757c14ec9 ""
   "/usr/share/texmf-dist/web2c/texmf.cnf" 1650183167 39911 2da6c67557ec033436fe5418a70a8a61 ""
-  "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1662281417 4278762 af3ac1370db81a450c1118eabf1fe718 ""
-  "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1662281393 2927659 3b326ff96f7b3402fb6c8cc499481218 ""
+  "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1666686936 4278762 af3ac1370db81a450c1118eabf1fe718 ""
+  "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1666686901 2927661 5fb18300d8fd7ae34bbe032dd97bacd3 ""
   "figures/BadRandom.png" 1663934092 55419 4dc8e1a4cdc457d0d2205bc9f2c9a254 ""
   "figures/explanation.png" 1666096702 344649 1d8417e1975316e009630776a230ebe5 ""
   "figures/randomnumberx.png" 1663930684 431663 90c1a81c704c02a2de27d0987378f596 ""
   "figures/randomnumberz.png" 1663930288 429134 28c9d1cd7b2374980c9fdc1cee1c6dad ""
-  "journal.aux" 1666196810 2193 b1ed21b62f1f85379d822d626ef91161 "pdflatex"
+  "journal.aux" 1666686941 2193 b1ed21b62f1f85379d822d626ef91161 "pdflatex"
   "journal.bbl" 1666196550 365 7582fc53dac33299a9c6f3e61b4c0e9c "bibtex journal"
-  "journal.out" 1666196810 550 10e14279c9c8f833ae955c1dea720030 "pdflatex"
+  "journal.out" 1666686941 550 10e14279c9c8f833ae955c1dea720030 "pdflatex"
   "journal.tex" 1666196807 3307 d14f5fa855c5c148c8a0333287e1f53f ""
   (generated)
   "journal.aux"

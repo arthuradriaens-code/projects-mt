@@ -78,7 +78,7 @@ logging.basicConfig()
 
 logger = logging.getLogger('ray_tracing_modules')
 missed = 0
-amountofvertices = 50
+amountofvertices = 500
 
 xpoints = np.random.uniform(low=100, high=4000.0, size=amountofvertices)
 zpoints = np.random.uniform(low=-3000, high=-100.0, size=amountofvertices) 
@@ -105,9 +105,9 @@ BadPointsHybz = []
 
 normal = input('normal: ')
 ztol = input('ztol: ')
-TimeAn = []
-TimeIt = []
-TimeHyb = []
+TimeAn = 0
+TimeIt = 0
+TimeHyb = 0
 
 with alive_bar(amountofvertices,title='Calculating paths using iterative raytracer',length=20,bar='filling',spinner='dots_waves2') as bar: #fun progress bar, of course not needed for the program to function
     for i in range(amountofvertices):
@@ -125,6 +125,7 @@ with alive_bar(amountofvertices,title='Calculating paths using iterative raytrac
 
 
         #iterative one:
+        start = time.time()
         AmountOfDirect = 0
         AmountOfRefracted = 0
         AmountOfReflected = 0
@@ -134,9 +135,7 @@ with alive_bar(amountofvertices,title='Calculating paths using iterative raytrac
         prop = radioproparaytracing.radiopropa_ray_tracing(medium.greenland_simple(), attenuation_model='GL1',config=configit)
 
         prop.set_start_and_end_point(start_point, final_point)
-        start = time.time()
         prop.find_solutions()
-        end = time.time()
         SolNumberHybrid = prop.get_number_of_solutions()
         for Sol in range(SolNumberHybrid):
             SolType = prop.get_solution_type(Sol) #1:direct,2:refracted and 3: reflected
@@ -173,15 +172,16 @@ with alive_bar(amountofvertices,title='Calculating paths using iterative raytrac
                 ReflectedDeltaTime = prop.get_travel_time(Sol)
                 ReflectedDeltaAZ = ZenithAngle(prop.get_receive_vector(Sol))
 
-        TimeIt.append(end - start)
+        end = time.time()
+        TimeIt += end-start
 
         #analytic one:
+        start = time.time()
+
 
         prop = analyticraytracing.ray_tracing(medium.greenland_simple(), attenuation_model='GL1')
         prop.set_start_and_end_point(start_point, final_point)
-        start = time.time()
         prop.find_solutions()
-        end = time.time()
         SolNumberAnalytic = prop.get_number_of_solutions()
         if (SolNumberHybrid == SolNumberAnalytic):
             for Sol in range(SolNumberAnalytic):
@@ -220,7 +220,8 @@ with alive_bar(amountofvertices,title='Calculating paths using iterative raytrac
                     ReflectedDeltaTime -= prop.get_travel_time(Sol)
                     ReflectedDeltaAZ -= ZenithAngle(prop.get_receive_vector(Sol))
                     #ReflectedDeltaAZ = 0
-        TimeAn.append(end - start)
+        end = time.time()
+        TimeAn += end-start
 
 
         if (AmountOfDirect == 0) and (AmountOfRefracted == 0) and (AmountOfReflected == 0):
@@ -241,7 +242,6 @@ with alive_bar(amountofvertices,title='Calculating paths using iterative raytrac
                     RefractedDeltaAZs.append(DeltaAZ*(180/np.pi)*1000)
                     if np.abs(DeltaAZ*(180/np.pi)*1000) > 5000:
                         print("wtf on"+str(start_point))
-
                 print("lesgoo")
         else:
             missed += 1
@@ -254,7 +254,7 @@ with alive_bar(amountofvertices,title='Calculating paths using iterative raytrac
         bar()
 print("there were {} \"special\" cases".format(missed))
 
-print("the iterative raytracer is " + str(np.sum(np.array(TimeIt))/np.sum(np.array(TimeAn))) + " times slower")
+print("the iterative raytracer is " + str(TimeIt/TimeAn) + " times slower")
 
 
 plt.title("iterative")
@@ -334,6 +334,7 @@ with alive_bar(amountofvertices,title='Calculating paths using hybrid raytracer'
 
 
         #hybrid one:
+        start = time.time()
 
         AmountOfDirect = 0
         AmountOfRefracted = 0
@@ -344,9 +345,7 @@ with alive_bar(amountofvertices,title='Calculating paths using hybrid raytracer'
         prop = radioproparaytracing.radiopropa_ray_tracing(medium.greenland_simple(), attenuation_model='GL1',config=confighybrid)
 
         prop.set_start_and_end_point(start_point, final_point)
-        start = time.time()
         prop.find_solutions()
-        end = time.time()
         SolNumberHybrid = prop.get_number_of_solutions()
         for Sol in range(SolNumberHybrid):
             SolType = prop.get_solution_type(Sol) #1:direct,2:refracted and 3: reflected
@@ -382,8 +381,9 @@ with alive_bar(amountofvertices,title='Calculating paths using hybrid raytracer'
                 AmountOfReflected += 1
                 ReflectedDeltaTime = prop.get_travel_time(Sol)
                 ReflectedDeltaAZ = ZenithAngle(prop.get_receive_vector(Sol))
+        end = time.time()
 
-        TimeHyb.append(end - start)
+        TimeHyb += end-start
         
         #analytic one:
 
@@ -460,7 +460,7 @@ with alive_bar(amountofvertices,title='Calculating paths using hybrid raytracer'
                 
         bar()
 print("there were {} \"special\" cases".format(missed))
-print("the hybrid raytracer is " + str(np.sum(np.array(TimeHyb))/np.sum(np.array(TimeAn))) + " times slower")
+print("the hybrid raytracer is " + str(TimeHyb/TimeAn) + " times slower")
 sys.stdout = open('hybrid_sigmas', 'w')
 sys.stdout.write(str(normal))
 sys.stdout.write("  ")

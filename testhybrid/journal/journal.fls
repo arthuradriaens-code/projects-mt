@@ -1,4 +1,4 @@
-PWD /home/arthur/Documents/thesis/programs/projects/testhybrid/journal
+PWD /home/arthur/Documents/thesis/projects-mt/testhybrid/journal
 INPUT /usr/share/texmf-dist/web2c/texmf.cnf
 INPUT /var/lib/texmf/web2c/pdftex/pdflatex.fmt
 INPUT journal.tex

@@ -73,10 +73,10 @@ logging.basicConfig()
 
 logger = logging.getLogger('ray_tracing_modules')
 missed = 0
-amountofvertices = 1000
+amountofvertices = 10
 
 xpoints = np.random.uniform(low=100, high=4000.0, size=amountofvertices)
-zpoints = np.random.uniform(low=-3000, high=0.0, size=amountofvertices)
+zpoints = np.random.uniform(low=-3000, high=-100.0, size=amountofvertices) 
 points = [xpoints,zpoints]
 final_point = np.array( [0., 0., -100.] ) * units.m
 
@@ -226,7 +226,7 @@ with alive_bar(amountofvertices,title='Calculating paths using iterative raytrac
                     RefractedDeltaTimes.append(DeltaTime)
                 for DeltaAZ in RefractedDeltaTimeArray:
                     RefractedDeltaAZs.append(DeltaAZ*(180/np.pi)*1000)
-                    if np.abs(DeltaAZSec*(180/np.pi)*1000) > 5000:
+                    if np.abs(DeltaAZ*(180/np.pi)*1000) > 5000:
                         print("wtf on"+str(start_point))
                 print("lesgoo")
         else:
@@ -239,9 +239,8 @@ with alive_bar(amountofvertices,title='Calculating paths using iterative raytrac
                 
         bar()
 print("there were {} \"special\" cases".format(missed))
-
+plt.title("iterative")
 plt.subplot(3, 2, 5)
-np.save("DirectDeltaTimes_N_{}_iterative.npy".format(amountofvertices), DirectDeltaTimes)
 hist,bin_edges = np.histogram(DirectDeltaTimes, bins=10000, range=None,weights=np.ones(len(DirectDeltaTimes))/len(DirectDeltaTimes), density=None)
 percentile = Calc68(hist,bin_edges)
 plt.hist(DirectDeltaTimes,weights=np.ones(len(DirectDeltaTimes))/len(DirectDeltaTimes),bins=20,label="68%={0:.2f} ns".format(percentile),color="blue")
@@ -301,7 +300,6 @@ GoodPointsz = []
 BadPointsx = []
 BadPointsz = []
 
-
 with alive_bar(amountofvertices,title='Calculating paths using hybrid raytracer',length=20,bar='filling',spinner='dots_waves2') as bar: #fun progress bar, of course not needed for the program to function
     for i in range(amountofvertices):
 
@@ -317,7 +315,7 @@ with alive_bar(amountofvertices,title='Calculating paths using hybrid raytracer'
         ReflectedDeltaAZ = 0
 
 
-        #hybrid one:
+        #iterative one:
 
         AmountOfDirect = 0
         AmountOfRefracted = 0
@@ -343,6 +341,20 @@ with alive_bar(amountofvertices,title='Calculating paths using hybrid raytracer'
                     RefractedDeltaTimeSec = prop.get_travel_time(Sol)
                     RefractedDeltaAZSec = ZenithAngle(prop.get_receive_vector(Sol))
                     SecondOfSameRefracted = True
+
+                    #needed to sort values and compare right ones
+                    RefractedDeltaTimeListIt = []
+                    RefractedDeltaAZListIt = []
+                    RefractedDeltaTimeListAn = []
+                    RefractedDeltaAZListAn = []
+
+                    RefractedDeltaTimeListIt.append(RefractedDeltaTime)
+                    RefractedDeltaTimeListIt.append(RefractedDeltaTimeSec)
+                    RefractedDeltaTimeArrayIt = np.array(RefractedDeltaTimeListIt)
+
+                    RefractedDeltaAZListIt.append(RefractedDeltaAZ)
+                    RefractedDeltaAZListIt.append(RefractedDeltaAZSec)
+                    RefractedDeltaAZArrayIt = np.array(RefractedDeltaTimeListIt)
                 else:
                     RefractedDeltaTime = prop.get_travel_time(Sol)
                     RefractedDeltaAZ = ZenithAngle(prop.get_receive_vector(Sol))
@@ -377,13 +389,19 @@ with alive_bar(amountofvertices,title='Calculating paths using hybrid raytracer'
                     #DirectDeltaAZ = 0
                 if SolType == 2:
                     AmountOfRefracted -= 1
-                    if AmountOfRefracted == 1:
+                    if SecondOfSameRefracted:
                         RefractedDeltaTimeSec -= prop.get_travel_time(Sol)
                         RefractedDeltaAZSec -= ZenithAngle(prop.get_receive_vector(Sol))
+
+                        #needed to sort values and compare right ones
+                        RefractedDeltaTimeListAn.append(RefractedDeltaTimeSec)
+                        RefractedDeltaTimeArrayAn = np.array(RefractedDeltaTimeListIt)
+
+                        RefractedDeltaAZListAn.append(RefractedDeltaAZSec)
+                        RefractedDeltaAZArrayAn = np.array(RefractedDeltaTimeListIt)
                     else:
                         RefractedDeltaTime -= prop.get_travel_time(Sol)
                         RefractedDeltaAZ -= ZenithAngle(prop.get_receive_vector(Sol))
-                    #RefractedDeltaAZ = 0 
                 if SolType == 3:
                     AmountOfReflected -= 1
                     ReflectedDeltaTime -= prop.get_travel_time(Sol)
@@ -393,16 +411,23 @@ with alive_bar(amountofvertices,title='Calculating paths using hybrid raytracer'
 
 
         if (AmountOfDirect == 0) and (AmountOfRefracted == 0) and (AmountOfReflected == 0):
-            DirectDeltaTimes.append(DirectDeltaTime/units.ns)
-            RefractedDeltaTimes.append(RefractedDeltaTime/units.ns)
-            ReflectedDeltaTimes.append(ReflectedDeltaTime/units.ns)
 
+            DirectDeltaTimes.append(DirectDeltaTime/units.ns)
+            ReflectedDeltaTimes.append(ReflectedDeltaTime/units.ns)
             DirectDeltaAZs.append(DirectDeltaAZ*(180/np.pi)*1000)
-            RefractedDeltaAZs.append(RefractedDeltaAZ*(180/np.pi)*1000)
             ReflectedDeltaAZs.append(ReflectedDeltaAZ*(180/np.pi)*1000)
-            if SecondOfSameRefracted: 
-                RefractedDeltaTimes.append(RefractedDeltaTimeSec/units.ns)
-                RefractedDeltaAZs.append(RefractedDeltaAZSec*(180/np.pi)*1000)
+            if not SecondOfSameRefracted:
+                RefractedDeltaTimes.append(RefractedDeltaTime/units.ns)
+                RefractedDeltaAZs.append(RefractedDeltaAZ*(180/np.pi)*1000)
+            else: 
+                RefractedDeltaTimeArray = np.sort(RefractedDeltaTimeArrayIt/units.ns) - np.sort(RefractedDeltaTimeArrayAn/units.ns)
+                RefractedDeltaAZArray = np.sort(RefractedDeltaAZArrayIt) - np.sort(RefractedDeltaAZArrayAn)
+                for DeltaTime in RefractedDeltaTimeArray:
+                    RefractedDeltaTimes.append(DeltaTime)
+                for DeltaAZ in RefractedDeltaTimeArray:
+                    RefractedDeltaAZs.append(DeltaAZ*(180/np.pi)*1000)
+                    if np.abs(DeltaAZ*(180/np.pi)*1000) > 5000:
+                        print("wtf on"+str(start_point))
                 print("lesgoo")
         else:
             missed += 1
@@ -414,11 +439,9 @@ with alive_bar(amountofvertices,title='Calculating paths using hybrid raytracer'
                 
         bar()
 print("there were {} \"special\" cases".format(missed))
-
 plt.clf()
-
+plt.title("hybrid")
 plt.subplot(3, 2, 5)
-np.save("DirectDeltaTimes_N_{}_hybrid.npy".format(amountofvertices), DirectDeltaTimes)
 hist,bin_edges = np.histogram(DirectDeltaTimes, bins=10000, range=None,weights=np.ones(len(DirectDeltaTimes))/len(DirectDeltaTimes), density=None)
 percentile = Calc68(hist,bin_edges)
 plt.hist(DirectDeltaTimes,weights=np.ones(len(DirectDeltaTimes))/len(DirectDeltaTimes),bins=20,label="68%={0:.2f} ns".format(percentile),color="blue")
@@ -468,7 +491,7 @@ plt.scatter(GoodPointsItx,GoodPointsItz,color="green")
 plt.scatter(BadPointsItx,BadPointsItz,color="red")
 plt.title("Iterative")
 plt.show()
-
+    
 plt.clf()
 plt.scatter(GoodPointsHybx,GoodPointsHybz,color="green")
 plt.scatter(BadPointsHybx,BadPointsHybz,color="red")

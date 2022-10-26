@@ -1,4 +1,4 @@
-from NuRadioMC.SignalProp import analyticraytracing
+from NuRadioMC.SignalProp import radioproparaytracing 
 from NuRadioMC.utilities import medium
 from NuRadioReco.utilities import units
 import matplotlib.pyplot as plt
@@ -11,7 +11,24 @@ logger = logging.getLogger('ray_tracing_modules')
 
 # Let us work on the y = 0 plane
 final_point = np.array( [0., 0., -100.] ) * units.m
-xcoordinates = -np.arange(400,1000,1)
+xcoordinates = -np.arange(400,1000,10)
+
+configit = dict()
+configit['propagation'] = dict(
+    attenuate_ice = True,
+    focusing_limit = 2,
+    focusing = False,
+    radiopropa = dict(
+        mode = 'hybrid minimizing',
+        iter_steps_channel = [25., 2., .5], #unit is meter
+        iter_steps_zenith = [.5, .05, .005], #unit is degree
+        auto_step_size = False,
+        max_traj_length = 10000) #unit is meter
+)
+configit['speedup'] = dict(
+    delta_C_cut = 40 * units.degree
+)
+
 
 def CalcAngleToGround(a):
     lena = np.sqrt(np.dot(a,a)) #normalize
@@ -22,7 +39,7 @@ def degreetorad(deg):
 paths = []
 times = []
 distances = []
-prop = analyticraytracing.ray_tracing(medium.greenland_simple(), attenuation_model='GL1')
+prop = radioproparaytracing.radiopropa_ray_tracing(medium.greenland_simple(), attenuation_model='GL1',config=configit)
 for xcoordinate in xcoordinates:
     start = time.time()
     start_point = np.array([xcoordinate,0.,-105.50417894])*units.m
