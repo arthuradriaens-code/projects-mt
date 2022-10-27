@@ -78,7 +78,7 @@ logging.basicConfig()
 
 logger = logging.getLogger('ray_tracing_modules')
 missed = 0
-amountofvertices = 50
+amountofvertices = 500
 
 xpoints = np.random.uniform(low=100, high=4000.0, size=amountofvertices)
 zpoints = np.random.uniform(low=-3000, high=-100.0, size=amountofvertices) 
@@ -103,8 +103,6 @@ GoodPointsHybz = []
 BadPointsHybx = []
 BadPointsHybz = []
 
-normal = input('normal: ')
-ztol = input('ztol: ')
 TimeAn = []
 TimeIt = []
 TimeHyb = []
@@ -137,6 +135,8 @@ with alive_bar(amountofvertices,title='Calculating paths using iterative raytrac
         start = time.time()
         prop.find_solutions()
         end = time.time()
+        TimeIt.append(end - start)
+        print(end-start)
         SolNumberHybrid = prop.get_number_of_solutions()
         for Sol in range(SolNumberHybrid):
             SolType = prop.get_solution_type(Sol) #1:direct,2:refracted and 3: reflected
@@ -172,8 +172,6 @@ with alive_bar(amountofvertices,title='Calculating paths using iterative raytrac
                 AmountOfReflected += 1
                 ReflectedDeltaTime = prop.get_travel_time(Sol)
                 ReflectedDeltaAZ = ZenithAngle(prop.get_receive_vector(Sol))
-
-        TimeIt.append(end - start)
 
         #analytic one:
 
@@ -220,7 +218,7 @@ with alive_bar(amountofvertices,title='Calculating paths using iterative raytrac
                     ReflectedDeltaTime -= prop.get_travel_time(Sol)
                     ReflectedDeltaAZ -= ZenithAngle(prop.get_receive_vector(Sol))
                     #ReflectedDeltaAZ = 0
-        TimeAn.append(end - start)
+        TimeAn.append((end - start))
 
 
         if (AmountOfDirect == 0) and (AmountOfRefracted == 0) and (AmountOfReflected == 0):
@@ -254,7 +252,7 @@ with alive_bar(amountofvertices,title='Calculating paths using iterative raytrac
         bar()
 print("there were {} \"special\" cases".format(missed))
 
-print("the iterative raytracer is " + str(np.sum(np.array(TimeIt))/np.sum(np.array(TimeAn))) + " times slower")
+print("the iterative raytracer time:" + str(np.sum(np.array(TimeIt))/amountofvertices) + "time an:" + str(np.sum(np.array(TimeAn))/amountofvertices) + "milliseconds")
 
 
 plt.title("iterative")
@@ -460,12 +458,8 @@ with alive_bar(amountofvertices,title='Calculating paths using hybrid raytracer'
                 
         bar()
 print("there were {} \"special\" cases".format(missed))
-print("the hybrid raytracer is " + str(np.sum(np.array(TimeHyb))/np.sum(np.array(TimeAn))) + " times slower")
+print("the hybrid raytracer time:" + str(np.sum(np.array(TimeHyb))/amountofvertices) + "time an:" + str(np.sum(np.array(TimeAn))/amountofvertices) + "seconds")
 sys.stdout = open('hybrid_sigmas', 'w')
-sys.stdout.write(str(normal))
-sys.stdout.write("  ")
-sys.stdout.write(str(ztol))
-sys.stdout.write("  ")
 
 plt.clf()
 plt.title("hybrid")
@@ -525,11 +519,11 @@ plt.xlabel("millidegree")
 plt.legend()
 
 plt.savefig('hybrid_comparison_N_{}.pdf'.format(amountofvertices),transparent=True)
-sys.stdout.write(str(TimeHyb/TimeAn))
+sys.stdout.write(str(np.sum(np.array(TimeHyb))/np.sum(np.array(TimeAn))))
 sys.stdout.write("  ")
-sys.stdout.write(str(TimeIt/TimeAn))
+sys.stdout.write(str(np.sum(np.array(TimeIt))/np.sum(np.array(TimeAn))))
 sys.stdout.write("  ")
-sys.stdout.write(str(TimeHyb/TimeIt))
+sys.stdout.write(str(np.sum(np.array(TimeHyb))/np.sum(np.array(TimeIt))))
 sys.stdout.write("\n")
 
 
@@ -537,15 +531,3 @@ sys.stdout.write("\n")
 sys.stdout.close()
 # Restore sys.stdout to our old saved file handler
 sys.stdout = stdout_fileno
-
-plt.clf()
-plt.scatter(GoodPointsItx,GoodPointsItz,color="green")
-plt.scatter(BadPointsItx,BadPointsItz,color="red")
-plt.title("Iterative")
-plt.show()
-    
-plt.clf()
-plt.scatter(GoodPointsHybx,GoodPointsHybz,color="green")
-plt.scatter(BadPointsHybx,BadPointsHybz,color="red")
-plt.title("hybrid")
-plt.show()
