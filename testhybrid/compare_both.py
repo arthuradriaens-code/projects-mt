@@ -136,7 +136,6 @@ with alive_bar(amountofvertices,title='Calculating paths using iterative raytrac
         prop.find_solutions()
         end = time.time()
         TimeIt.append(end - start)
-        print(end-start)
         SolNumberHybrid = prop.get_number_of_solutions()
         for Sol in range(SolNumberHybrid):
             SolType = prop.get_solution_type(Sol) #1:direct,2:refracted and 3: reflected
