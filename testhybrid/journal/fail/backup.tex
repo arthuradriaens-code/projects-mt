@@ -1,0 +1,47 @@
+\documentclass[a4paper,11pt,oneside]{article}
+\usepackage{a4wide}                     % Iets meer tekst op een bladzijde
+\usepackage[english]{babel} 
+\usepackage{amsmath}                    % Uitgebreide wiskundige mogelijkheden
+\usepackage{amssymb}                    % Voor speciale symbolen zoals de verzameling Z, R...
+\usepackage{url}                        % Om url's te verwerken
+\usepackage{graphicx}                   % Om figuren te kunnen verwerken
+\usepackage[small,bf,hang]{caption}    % Om de captions wat te verbeteren
+\usepackage{xspace}                     % Magische spaties na een commando
+\usepackage[latin1]{inputenc}           % Om niet ascii karakters rechtstreeks te kunnen typen
+\usepackage{float}                      % Om nieuwe float environments aan te maken. Ook optie H!
+\usepackage{flafter}                    % Opdat floats niet zouden voorsteken
+\usepackage{listings}                   % Voor het weergeven van letterlijke text en codelistings
+\usepackage{marvosym}                   % Om het euro symbool te krijgen
+\usepackage{textcomp}                   % Voor onder andere graden celsius
+\usepackage[left=2.5cm,top=1.4cm,right=1.5cm,bottom=25mm,nohead]{geometry}   % marges instellen
+\usepackage{fancyhdr}                   % Voor fancy headers en footers.
+\pagestyle{fancy}                       % De bladzijdestijl
+\usepackage{graphics}                   % Om figuren te verwerken.
+\usepackage{lastpage}										% Om aan de laatste pagina te kunnen.
+\usepackage{csquotes}
+\usepackage{biblatex}
+\addbibresource{sources.bib}
+\newcommand{\npar}{\vspace{0.5cm} \par \noindent}      % witruimte aan paragrafen
+
+% begin van het document
+\begin{document}
+
+
+% Header (titel en datum aanpassen)
+\fancyhf{}                              % Resetten fancy settings.
+\renewcommand{\headrulewidth}{0pt}      % Geen lijn onder de header.
+\hspace{-7mm}\begin{tabular}{p{50mm}c}
+\includegraphics[width=40mm]{logo}& 
+	\begin{tabular*}{120mm}[b]{c}
+	\huge{Emission spectroscopy:}\\
+	\huge{Gas temperature}\\
+	\vspace{1cm}\\
+	\Large{Arthur Adriaens \& Atakan Atmaca} \\
+	\end{tabular*}
+\end{tabular}
+\vspace{1cm}
+
+% De inhoud
+\section{Typical Discharge Spectrum}
+\printbibliography
+\end{document}

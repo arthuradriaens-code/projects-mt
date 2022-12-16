@@ -11,9 +11,11 @@ import numpy as np
 import logging
 import configs
 
-# Save the current stdout so that we can revert sys.stdou after we complete
+# Save the current stdout so that we can revert sys.stdout after we complete
 # our redirection
 stdout_fileno = sys.stdout
+StepsZenith = 0.85
+SphereSize = 80.
 
 confighybrid = dict()
 confighybrid['propagation'] = dict(
@@ -22,8 +24,8 @@ confighybrid['propagation'] = dict(
     focusing = False,
     radiopropa = dict(
         mode = 'hybrid minimizing',
-        iter_steps_channel = [25., 2., .5], #unit is meter
-        iter_steps_zenith = [.5, .05, .005], #unit is degree
+        iter_steps_channel = [SphereSize, 2., .5], #unit is meter
+        iter_steps_zenith = [StepsZenith, .05, .005], #unit is degree
         auto_step_size = False,
         max_traj_length = 10000) #unit is meter
 )
@@ -40,7 +42,7 @@ configit['propagation'] = dict(
     radiopropa = dict(
         mode = 'iterative',
         iter_steps_channel = [25., 2., .5], #unit is meter
-        iter_steps_zenith = [.5, .05, .005], #unit is degree
+        iter_steps_zenith = [0.5, .05, .005], #unit is degree
         auto_step_size = False,
         max_traj_length = 10000) #unit is meter
 )
@@ -106,6 +108,9 @@ BadPointsHybz = []
 TimeAn = []
 TimeIt = []
 TimeHyb = []
+
+
+testcase = 0
 
 with alive_bar(amountofvertices,title='Calculating paths using iterative raytracer',length=20,bar='filling',spinner='dots_waves2') as bar: #fun progress bar, of course not needed for the program to function
     for i in range(amountofvertices):
@@ -192,6 +197,7 @@ with alive_bar(amountofvertices,title='Calculating paths using iterative raytrac
                         BadPointsItz.append(start_point[2])
                         print(start_point)
                         print("is a bad point")
+                        testcase += 1
                     else:
                         GoodPointsItx.append(start_point[0])
                         GoodPointsItz.append(start_point[2])
@@ -246,59 +252,15 @@ with alive_bar(amountofvertices,title='Calculating paths using iterative raytrac
                 print('prob \"non-correct identification\" on' + str(start_point))
             else:
                 print('maybe a problem on' + str(start_point))
+                testcase += 1
 
                 
         bar()
 print("there were {} \"special\" cases".format(missed))
+iterativebad=testcase
 
 print("the iterative raytracer time:" + str(np.sum(np.array(TimeIt))/amountofvertices) + "time an:" + str(np.sum(np.array(TimeAn))/amountofvertices) + "milliseconds")
 
-
-plt.title("iterative")
-plt.subplot(3, 2, 5)
-hist,bin_edges = np.histogram(DirectDeltaTimes, bins=10000, range=None,weights=np.ones(len(DirectDeltaTimes))/len(DirectDeltaTimes), density=None)
-percentile = Calc68(hist,bin_edges)
-plt.hist(DirectDeltaTimes,weights=np.ones(len(DirectDeltaTimes))/len(DirectDeltaTimes),bins=20,label="68%={0:.2f} ns".format(percentile),color="blue")
-plt.ylabel("Direct rays")
-plt.xlabel("nanoseconds")
-plt.legend()
-
-plt.subplot(3, 2, 3)
-hist,bin_edges = np.histogram(RefractedDeltaTimes, bins=10000, range=None,weights=np.ones(len(RefractedDeltaTimes))/len(RefractedDeltaTimes), density=None)
-percentile = Calc68(hist,bin_edges)
-plt.hist(RefractedDeltaTimes,weights=np.ones(len(RefractedDeltaTimes))/len(RefractedDeltaTimes),bins=20,label="68%={0:.2f} ns".format(percentile),color="orange")
-plt.ylabel("Refracted rays")
-plt.legend()
-
-plt.subplot(3, 2, 1)
-hist,bin_edges = np.histogram(ReflectedDeltaTimes, bins=10000,weights=np.ones(len(DirectDeltaTimes))/len(DirectDeltaTimes), density=None)
-percentile = Calc68(hist,bin_edges)
-plt.hist(ReflectedDeltaTimes,weights=np.ones(len(ReflectedDeltaTimes))/len(ReflectedDeltaTimes),bins=20,label="68%={0:.2f} ns".format(percentile),color="green")
-plt.ylabel("Reflected rays")
-plt.title("arrival time difference")
-plt.legend()
-
-plt.subplot(3, 2, 2)
-hist,bin_edges = np.histogram(DirectDeltaAZs, bins=10000, range=None,weights=np.ones(len(DirectDeltaTimes))/len(DirectDeltaTimes), density=None)
-percentile = Calc68(hist,bin_edges)
-plt.hist(DirectDeltaAZs,weights=np.ones(len(DirectDeltaAZs))/len(DirectDeltaAZs),bins=20,label="68%={0:.2f} mdeg".format(percentile),color="green")
-plt.title("arrival zenith difference")
-plt.legend()
-
-plt.subplot(3, 2, 4)
-hist,bin_edges = np.histogram(RefractedDeltaAZs, bins=10000, range=None,weights=np.ones(len(RefractedDeltaAZs))/len(RefractedDeltaAZs), density=None)
-percentile = Calc68(hist,bin_edges)
-plt.hist(RefractedDeltaAZs,weights=np.ones(len(RefractedDeltaAZs))/len(RefractedDeltaAZs),bins=20,label="68%={0:.2f} mdeg".format(percentile),color="orange")
-plt.legend()
-
-plt.subplot(3, 2, 6)
-hist,bin_edges = np.histogram(ReflectedDeltaAZs, bins=10000, range=None,weights=np.ones(len(ReflectedDeltaAZs))/len(ReflectedDeltaAZs), density=None)
-percentile = Calc68(hist,bin_edges)
-plt.hist(ReflectedDeltaAZs,weights=np.ones(len(ReflectedDeltaAZs))/len(ReflectedDeltaAZs),bins=20,label="68%={0:.2f} mdeg".format(percentile),color="blue")
-plt.xlabel("millidegree")
-plt.legend()
-
-plt.savefig('iterative_comparison_N_{}.pdf'.format(amountofvertices),transparent=True)
 
 #hybrid
 
@@ -314,6 +276,8 @@ GoodPointsx = []
 GoodPointsz = []
 BadPointsx = []
 BadPointsz = []
+
+testcase=0
 
 with alive_bar(amountofvertices,title='Calculating paths using hybrid raytracer',length=20,bar='filling',spinner='dots_waves2') as bar: #fun progress bar, of course not needed for the program to function
     for i in range(amountofvertices):
@@ -400,6 +364,7 @@ with alive_bar(amountofvertices,title='Calculating paths using hybrid raytracer'
                         BadPointsHybz.append(start_point[2])
                         print(start_point)
                         print("is a bad point")
+                        testcase+=1
                     else:
                         GoodPointsHybx.append(start_point[0])
                         GoodPointsHybz.append(start_point[2])
@@ -453,78 +418,59 @@ with alive_bar(amountofvertices,title='Calculating paths using hybrid raytracer'
                 print('prob \"non-correct identification\" on' + str(start_point))
             else:
                 print('maybe a problem on' + str(start_point))
-
-                
+                testcase+=1
         bar()
+hybridbad=testcase
 print("there were {} \"special\" cases".format(missed))
+hybridmissed=missed
+
+
 print("the hybrid raytracer time:" + str(np.sum(np.array(TimeHyb))/amountofvertices) + "time an:" + str(np.sum(np.array(TimeAn))/amountofvertices) + "seconds")
 sys.stdout = open('hybrid_sigmas', 'w')
 
-plt.clf()
-plt.title("hybrid")
-plt.subplot(3, 2, 5)
 hist,bin_edges = np.histogram(DirectDeltaTimes, bins=10000, range=None,weights=np.ones(len(DirectDeltaTimes))/len(DirectDeltaTimes), density=None)
 percentile = Calc68(hist,bin_edges)
 sys.stdout.write(str(percentile))
 sys.stdout.write("  ")
-plt.hist(DirectDeltaTimes,weights=np.ones(len(DirectDeltaTimes))/len(DirectDeltaTimes),bins=20,label="68%={0:.2f} ns".format(percentile),color="blue")
-plt.ylabel("Direct rays")
-plt.xlabel("nanoseconds")
-plt.legend()
 
-plt.subplot(3, 2, 3)
 hist,bin_edges = np.histogram(RefractedDeltaTimes, bins=10000, range=None,weights=np.ones(len(RefractedDeltaTimes))/len(RefractedDeltaTimes), density=None)
 percentile = Calc68(hist,bin_edges)
 sys.stdout.write(str(percentile))
 sys.stdout.write("  ")
-plt.hist(RefractedDeltaTimes,weights=np.ones(len(RefractedDeltaTimes))/len(RefractedDeltaTimes),bins=20,label="68%={0:.2f} ns".format(percentile),color="orange")
-plt.ylabel("Refracted rays")
-plt.legend()
 
-plt.subplot(3, 2, 1)
 hist,bin_edges = np.histogram(ReflectedDeltaTimes, bins=10000,weights=np.ones(len(DirectDeltaTimes))/len(DirectDeltaTimes), density=None)
 percentile = Calc68(hist,bin_edges)
 sys.stdout.write(str(percentile))
 sys.stdout.write("  ")
-plt.hist(ReflectedDeltaTimes,weights=np.ones(len(ReflectedDeltaTimes))/len(ReflectedDeltaTimes),bins=20,label="68%={0:.2f} ns".format(percentile),color="green")
-plt.ylabel("Reflected rays")
-plt.title("arrival time difference")
-plt.legend()
 
-plt.subplot(3, 2, 2)
 hist,bin_edges = np.histogram(DirectDeltaAZs, bins=10000, range=None,weights=np.ones(len(DirectDeltaTimes))/len(DirectDeltaTimes), density=None)
 percentile = Calc68(hist,bin_edges)
 sys.stdout.write(str(percentile))
 sys.stdout.write("  ")
-plt.hist(DirectDeltaAZs,weights=np.ones(len(DirectDeltaAZs))/len(DirectDeltaAZs),bins=20,label="68%={0:.2f} mdeg".format(percentile),color="green")
-plt.title("arrival zenith difference")
-plt.legend()
 
-plt.subplot(3, 2, 4)
 hist,bin_edges = np.histogram(RefractedDeltaAZs, bins=10000, range=None,weights=np.ones(len(RefractedDeltaAZs))/len(RefractedDeltaAZs), density=None)
 percentile = Calc68(hist,bin_edges)
 sys.stdout.write(str(percentile))
 sys.stdout.write("  ")
-plt.hist(RefractedDeltaAZs,weights=np.ones(len(RefractedDeltaAZs))/len(RefractedDeltaAZs),bins=20,label="68%={0:.2f} mdeg".format(percentile),color="orange")
-plt.legend()
 
-plt.subplot(3, 2, 6)
 hist,bin_edges = np.histogram(ReflectedDeltaAZs, bins=10000, range=None,weights=np.ones(len(ReflectedDeltaAZs))/len(ReflectedDeltaAZs), density=None)
 percentile = Calc68(hist,bin_edges)
 sys.stdout.write(str(percentile))
 sys.stdout.write("  ")
-plt.hist(ReflectedDeltaAZs,weights=np.ones(len(ReflectedDeltaAZs))/len(ReflectedDeltaAZs),bins=20,label="68%={0:.2f} mdeg".format(percentile),color="blue")
-plt.xlabel("millidegree")
-plt.legend()
 
-plt.savefig('hybrid_comparison_N_{}.pdf'.format(amountofvertices),transparent=True)
 sys.stdout.write(str(np.sum(np.array(TimeHyb))/np.sum(np.array(TimeAn))))
 sys.stdout.write("  ")
 sys.stdout.write(str(np.sum(np.array(TimeIt))/np.sum(np.array(TimeAn))))
 sys.stdout.write("  ")
 sys.stdout.write(str(np.sum(np.array(TimeHyb))/np.sum(np.array(TimeIt))))
-sys.stdout.write("\n")
+sys.stdout.write("  ")
 
+if (iterativebad >= hybridbad):
+    sys.stdout.write("+")
+else: 
+    sys.stdout.write("X")
+
+sys.stdout.write("\n")
 
 # Close the file
 sys.stdout.close()
