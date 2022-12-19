@@ -1,4 +1,4 @@
-PWD /home/arthur/Documents/thesis/projects-mt/testhybrid/journal/Presentation
+PWD /home/arthur/Universiteit/thesis/programs/projects-mt/testhybrid/journal/Presentation
 INPUT /usr/share/texmf-dist/web2c/texmf.cnf
 INPUT /var/lib/texmf/web2c/pdftex/pdflatex.fmt
 INPUT presentation.tex
@@ -1338,11 +1338,11 @@ INPUT ./figures/explanation.png
 INPUT ./figures/explanation.png
 INPUT figures/explanation.png
 INPUT ./figures/explanation.png
-INPUT ./figures/SphereAndStepAll.pdf
-INPUT ./figures/SphereAndStepAll.pdf
-INPUT figures/SphereAndStepAll.pdf
-INPUT ./figures/SphereAndStepAll.pdf
-INPUT ./figures/SphereAndStepAll.pdf
+INPUT ./figures/subplotofallztolsphere.pdf
+INPUT ./figures/subplotofallztolsphere.pdf
+INPUT figures/subplotofallztolsphere.pdf
+INPUT ./figures/subplotofallztolsphere.pdf
+INPUT ./figures/subplotofallztolsphere.pdf
 INPUT ./figures/SphereAndStepFinal.pdf
 INPUT ./figures/SphereAndStepFinal.pdf
 INPUT figures/SphereAndStepFinal.pdf

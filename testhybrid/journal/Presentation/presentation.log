@@ -1,6 +1,6 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022/Arch Linux) (preloaded format=pdflatex 2022.12.8)  13 DEC 2022 14:00
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022/Arch Linux) (preloaded format=pdflatex 2022.11.18)  19 DEC 2022 19:42
 entering extended mode
- restricted \write18 enabled.
+ \write18 enabled.
  file:line:error style messages enabled.
  %&-line parsing enabled.
 **presentation.tex
@@ -911,15 +911,15 @@ Package pdftex.def Info: figures/explanation.png  used on input line 211.
  [31
 
 ]
-<figures/SphereAndStepAll.pdf, id=1139, 894.34125pt x 570.13pt>
-File: figures/SphereAndStepAll.pdf Graphic file (type pdf)
-<use figures/SphereAndStepAll.pdf>
-Package pdftex.def Info: figures/SphereAndStepAll.pdf  used on input line 216.
-(pdftex.def)             Requested size: 307.28987pt x 195.89471pt.
+<figures/subplotofallztolsphere.pdf, id=1139, 1205.46356pt x 670.66557pt>
+File: figures/subplotofallztolsphere.pdf Graphic file (type pdf)
+<use figures/subplotofallztolsphere.pdf>
+Package pdftex.def Info: figures/subplotofallztolsphere.pdf  used on input line 216.
+(pdftex.def)             Requested size: 307.28987pt x 170.96117pt.
  [32
 
- <./figures/SphereAndStepAll.pdf>]
-<figures/SphereAndStepFinal.pdf, id=1176, 894.34125pt x 570.13pt>
+ <./figures/subplotofallztolsphere.pdf>]
+<figures/SphereAndStepFinal.pdf, id=1217, 894.34125pt x 570.13pt>
 File: figures/SphereAndStepFinal.pdf Graphic file (type pdf)
 <use figures/SphereAndStepFinal.pdf>
 Package pdftex.def Info: figures/SphereAndStepFinal.pdf  used on input line 221.
@@ -959,17 +959,17 @@ Package rerunfilecheck Info: File `presentation.out' has not changed.
  ) 
 Here is how much of TeX's memory you used:
  21792 strings out of 478238
- 421619 string characters out of 5850456
- 670484 words of memory out of 5000000
+ 421661 string characters out of 5850455
+ 670483 words of memory out of 5000000
  39491 multiletter control sequences out of 15000+600000
  476314 words of font info for 53 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  128i,14n,122p,434b,556s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmss10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmss12.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb>
-Output written on presentation.pdf (37 pages, 924527 bytes).
+Output written on presentation.pdf (37 pages, 934164 bytes).
 PDF statistics:
- 1356 PDF objects out of 1440 (max. 8388607)
- 1075 compressed objects within 11 object streams
+ 1398 PDF objects out of 1440 (max. 8388607)
+ 1073 compressed objects within 11 object streams
  75 named destinations out of 1000 (max. 500000)
  163 words of extra memory for PDF output out of 10000 (max. 10000000)
 
