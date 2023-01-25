@@ -1,34 +1,22 @@
 \documentclass{beamer}
-\usetheme{default}
 \title{Hybrid Ray Tracer}
 \author{Arthur Adriaens}
 \date{\today}
+\usetheme{Boadilla}
+\useoutertheme{infolines}
 
 \begin{document}
 \begin{frame}
 	\titlepage
 \end{frame}
-\begin{frame}{what?}
-	\begin{minipage}{0.49\textwidth}
-	\begin{figure}
-		\centering
-		\includegraphics[width=\textwidth]{figures/hybrid_comparison_N_500.pdf}
-		\caption{Hybrid}
-	\end{figure}
-	\end{minipage}
-	\begin{minipage}{0.49\textwidth}
-	\begin{figure}
-		\centering
-		\includegraphics[width=\textwidth]{figures/iterative_comparison_N_500.pdf}
-		\caption{Iterative}
-	\end{figure}
-	\end{minipage}
-\end{frame}
 \begin{frame}{Why?}
-	\begin{itemize}
-		\item Complex ice models needed
-		\item full path might be needed
-	\end{itemize}
+		Complex ice models needed
+\end{frame}
+\begin{frame}{what?}
+	\begin{figure}
+		\centering
+		\includegraphics[width=\textwidth]{figures/ExplanationRadiopropa.png}
+	\end{figure}
 \end{frame}
 
 \begin{frame}
@@ -40,6 +28,24 @@
 		\item final results
 	\end{enumerate}
 \end{frame}
+
+%\begin{frame}{what?}
+%	\begin{minipage}{0.49\textwidth}
+%	\begin{figure}
+%		\centering
+%		\includegraphics[width=\textwidth]{figures/hybrid_comparison_N_500.pdf}
+%		\caption{Hybrid}
+%	\end{figure}
+%	\end{minipage}
+%	\begin{minipage}{0.49\textwidth}
+%	\begin{figure}
+%		\centering
+%		\includegraphics[width=\textwidth]{figures/iterative_comparison_N_500.pdf}
+%		\caption{Iterative}
+%	\end{figure}
+%	\end{minipage}
+%\end{frame}
+
 \begin{frame}{Iterative ray tracer}
 	\begin{figure}
 		\includegraphics[width=\textwidth]{figures/iterative_explanation.png}
@@ -57,25 +63,11 @@
 \end{frame}
 \begin{frame}
 	\centering
-	Problem: can't find the intervals for certain cases
+	Problem: How to find the intervals?
 \end{frame}
 \begin{frame}
 	\begin{figure}
-		\includegraphics[width=\textwidth]{figures/iterative.png}
-	\end{figure}
-\end{frame}
-\begin{frame}
-	\begin{figure}
-		\includegraphics[width=\textwidth]{figures/minimize.png}
-	\end{figure}
-\end{frame}
-\begin{frame}
-	\centering
-	My solution
-\end{frame}
-\begin{frame}
-	\begin{figure}
-		\includegraphics[width=\textwidth]{figures/explanation.png}
+		\includegraphics[width=\textwidth]{figures/FullHybridIllu.png}
 	\end{figure}
 \end{frame}
 \begin{frame}
@@ -84,12 +76,8 @@
 	\end{figure}
 \end{frame}
 \begin{frame}
-	\begin{figure}
-		\includegraphics[width=\textwidth]{figures/hybrid.png}
-	\end{figure}
-\end{frame}
-\begin{frame}
 	\begin{minipage}{0.49\textwidth}
+    hybrid - analytic
 	\begin{figure}
 		\centering
 		\includegraphics[width=\textwidth]{figures/hybrid_comparison_N_1000.pdf}
@@ -97,6 +85,7 @@
 	\end{figure}
 	\end{minipage}
 	\begin{minipage}{0.49\textwidth}
+    iterative - analytic
 	\begin{figure}
 		\centering
 		\includegraphics[width=\textwidth]{figures/iterative_comparison_N_1000.pdf}
@@ -110,6 +99,17 @@ Whilst $\approx 15\%$ faster
 	Optimization
 \end{frame}
 \begin{frame}
+	\begin{figure}
+		\includegraphics[width=\textwidth]{figures/FullHybridIllu.png}
+	\end{figure}
+\end{frame}
+\begin{frame}
+	\begin{figure}
+		\includegraphics[width=\textwidth]{figures/PrincipleHybridIllu.pdf}
+	\end{figure}
+\end{frame}
+
+\begin{frame}
 	Length of the normal vector:
 	\begin{figure}
 		\includegraphics[width=\textwidth]{figures/NormVsRealTime.pdf}
@@ -122,7 +122,7 @@ Whilst $\approx 15\%$ faster
 \end{frame}
 \begin{frame}
 	\begin{figure}
-		\includegraphics[width=\textwidth]{figures/NormVsRealTime2.pdf}
+		\includegraphics[width=\textwidth]{figures/PrincipleNormIllu2.pdf}
 	\end{figure}
 \end{frame}
 \begin{frame}
@@ -133,7 +133,7 @@ Whilst $\approx 15\%$ faster
 \begin{frame}
 	\begin{figure}
 		\begin{minipage}{\textwidth}
-			\centering
+    \centering
 			\includegraphics[height=0.45\textheight]{figures/NormVsTime.pdf}
 		\end{minipage}
 		\begin{minipage}{\textwidth}
@@ -165,11 +165,6 @@ Whilst $\approx 15\%$ faster
 \begin{frame}
 	\begin{figure}
 		\includegraphics[width=\textwidth]{figures/PrincipleIllu.pdf}
-	\end{figure}
-\end{frame}
-\begin{frame}
-	\begin{figure}
-		\includegraphics[width=\textwidth]{figures/ZtolVsTime.pdf}
 	\end{figure}
 \end{frame}
 \begin{frame}
@@ -206,12 +201,12 @@ Whilst $\approx 15\%$ faster
 \end{frame}
 \begin{frame}{Sphere Size \& Step Size}
 	\begin{figure}
-		\includegraphics[width=\textwidth]{figures/explanation.png}
+		\includegraphics[width=\textwidth]{figures/FullHybridIllu.png}
 	\end{figure}
 \end{frame}
 \begin{frame}{Sphere Size \& Step Size}
 	\begin{figure}
-		\includegraphics[width=\textwidth]{figures/subplotofallztolsphere.pdf}
+		\includegraphics[width=\textwidth]{figures/subplotallsphereandstep.pdf}
 	\end{figure}
 \end{frame}
 \begin{frame}{Sphere Size \& Step Size}
@@ -224,7 +219,7 @@ Whilst $\approx 15\%$ faster
 		\item norm = 1m
 		\item ztol = 0.05m
 		\item Sphere size = 45m
-		\item step size = 0.7
+		\item step size = 0.7°
 	\end{itemize}
 \end{frame}
 \begin{frame}
@@ -245,17 +240,9 @@ Whilst $\approx 15\%$ faster
 \end{frame}
 \begin{frame}
 	\begin{itemize}
-		\item iterative :1.627s
-		\item hybrid : 1.226s (32.7\% faster)
-		\item analytic: 9.719e-05 seconds
+    \item iterative :1.627s $\implies$ 0.61 $\frac{\text{computations}}{s}$
+		\item hybrid : 1.226s $\implies$ 0.82 $\frac{\text{computations}}{s}$ (33.7\% faster) 
+		\item analytic: 9.719e-05 seconds $\implies$ 10289 $\frac{\text{computations}}{s}$ (632298\% faster)
 	\end{itemize}
-\end{frame}
-\begin{frame}{What if the same sphere and stepsize?}
-	\begin{itemize}
-		\item iterative :1.80317s
-		\item hybrid : 1.35776s (32.8\% faster)
-		\item analytic: 9.8812e-05 seconds
-	\end{itemize}\vspace{2cm}
-	Exactly the same $\sigma$'s
 \end{frame}
 \end{document}
