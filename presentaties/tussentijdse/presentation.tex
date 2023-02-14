@@ -1,5 +1,5 @@
 \documentclass{beamer}
-\title{Intersemsterial Presentation}
+\title{Interim Presentation}
 \author{Arthur Adriaens}
 \date{\today}
 \usetheme{Boadilla}
@@ -11,22 +11,28 @@
 \end{frame}
 \begin{frame}{Setup}
   \begin{itemize}
+    \item principle
     \item The need for RNO-G
     \item RNO-G
     \item Ice Models
-    \item My work
+    \item Iterative Ray Tracer
+    \item Hybrid Ray Tracer
   \end{itemize}
+\end{frame}
+\begin{frame}{Principle}
+  \includegraphics[width=\textwidth]{figures/mechanism.png}
 \end{frame}
 \begin{frame}{The need for RNO-G}
   \includegraphics[height=0.9\textheight]{figures/icecube.jpg}
 \end{frame}
 \begin{frame}{The need for RNO-G}
-  IceCube finds no events for energies $> 3PeV$ (\it{IceCube study of down-going neutrinos for the spectral cutoff determination by 
-Palczewski and Tomasz})
-\end{frame}
-\begin{frame}{The need for RNO-G}
   \centering
   \includegraphics[height=0.9\textheight]{figures/cosmic_ray_flux.pdf}
+\end{frame}
+\begin{frame}{The need for RNO-G}
+\begin{itemize}
+	\item IceCube finds no events for energies $> 3PeV$ (\it{IceCube study of down-going neutrinos for the spectral cutoff determination by Palczewski and Tomasz})
+\end{itemize}
 \end{frame}
 \begin{frame}{RNO-G}
   Problem: visible light doesn't travel far in ice\\
@@ -44,6 +50,13 @@ Palczewski and Tomasz})
   \centering
   \includegraphics[height=\textheight]{figures/station-map.png}
 \end{frame}
+\begin{frame}
+  \centering
+  \includegraphics[width=\textwidth]{figures/range.jpg}
+\end{frame}
+\begin{frame}{RNO-G}
+	"A Pathfinder for IceCube-Gen2 Radio"
+\end{frame}
 \begin{frame}{Ice Models}
   \centering
   \includegraphics[width=\textwidth]{figures/mechanism.png}
@@ -57,5 +70,13 @@ Exponential model:
   \begin{equation}
     n(z) = n_0 - \Delta n \ e^{-z/z_0}
   \end{equation}
+\end{frame}
+\begin{frame}{Ice Models}
+  \centering
+  \includegraphics[width=\textwidth]{figures/detector-illustration.png}
+\end{frame}
+\begin{frame}{Iterative Ray tracer}
+  \centering
+  \includegraphics[width=\textwidth]{figures/iterative_explanation.png}
 \end{frame}
 \end{document}

@@ -1,6 +1,6 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022/Arch Linux) (preloaded format=pdflatex 2022.11.18)  13 FEB 2023 03:37
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022/Arch Linux) (preloaded format=pdflatex 2022.12.8)  14 FEB 2023 14:00
 entering extended mode
- \write18 enabled.
+ restricted \write18 enabled.
  file:line:error style messages enabled.
  %&-line parsing enabled.
 **presentation.tex
@@ -685,85 +685,122 @@ Dictionary: translator-theorem-dictionary, Language: English
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] [2
 
 ]
-<figures/icecube.jpg, id=74, 1204.5pt x 903.375pt>
-File: figures/icecube.jpg Graphic file (type jpg)
-<use figures/icecube.jpg>
-Package pdftex.def Info: figures/icecube.jpg  used on input line 22.
-(pdftex.def)             Requested size: 312.57448pt x 234.4304pt.
+<figures/mechanism.png, id=74, 1606.0pt x 803.0pt>
+File: figures/mechanism.png Graphic file (type png)
+<use figures/mechanism.png>
+Package pdftex.def Info: figures/mechanism.png  used on input line 24.
+(pdftex.def)             Requested size: 342.2953pt x 171.14679pt.
  [3
 
- <./figures/icecube.jpg>]
-LaTeX Font Info:    Trying to load font information for U+msa on input line 26.
- (/usr/share/texmf-dist/tex/latex/amsfonts/umsa.fd
-File: umsa.fd 2013/01/14 v3.01 AMS symbols A
-)
-LaTeX Font Info:    Trying to load font information for U+msb on input line 26.
- (/usr/share/texmf-dist/tex/latex/amsfonts/umsb.fd
-File: umsb.fd 2013/01/14 v3.01 AMS symbols B
-)
-LaTeX Font Info:    Trying to load font information for OT1+mathkerncmss on input line 26.
- (/usr/share/texmf-dist/tex/latex/sansmathaccent/ot1mathkerncmss.fd
-File: ot1mathkerncmss.fd 2020/01/31 Fontinst v1.933 font definitions for OT1/mathkerncmss.
-) [4
+ <./figures/mechanism.png>]
+<figures/icecube.jpg, id=103, 1204.5pt x 903.375pt>
+File: figures/icecube.jpg Graphic file (type jpg)
+<use figures/icecube.jpg>
+Package pdftex.def Info: figures/icecube.jpg  used on input line 27.
+(pdftex.def)             Requested size: 312.57448pt x 234.4304pt.
+ [4
 
-]
+ <./figures/icecube.jpg>]
 
 pdfTeX warning: pdflatex (file ./figures/cosmic_ray_flux.pdf): PDF inclusion: found PDF version <1.7>, but at most version <1.5> allowed
 <figures/cosmic_ray_flux.pdf, id=131, 423.67458pt x 487.32523pt>
 File: figures/cosmic_ray_flux.pdf Graphic file (type pdf)
 <use figures/cosmic_ray_flux.pdf>
-Package pdftex.def Info: figures/cosmic_ray_flux.pdf  used on input line 30.
+Package pdftex.def Info: figures/cosmic_ray_flux.pdf  used on input line 31.
 (pdftex.def)             Requested size: 203.81401pt x 234.4304pt.
 [5
 
- <./figures/cosmic_ray_flux.pdf>] [6
+ <./figures/cosmic_ray_flux.pdf>]
+LaTeX Font Info:    Trying to load font information for U+msa on input line 36.
+ (/usr/share/texmf-dist/tex/latex/amsfonts/umsa.fd
+File: umsa.fd 2013/01/14 v3.01 AMS symbols A
+)
+LaTeX Font Info:    Trying to load font information for U+msb on input line 36.
+ (/usr/share/texmf-dist/tex/latex/amsfonts/umsb.fd
+File: umsb.fd 2013/01/14 v3.01 AMS symbols B
+)
+LaTeX Font Info:    Trying to load font information for OT1+mathkerncmss on input line 36.
+ (/usr/share/texmf-dist/tex/latex/sansmathaccent/ot1mathkerncmss.fd
+File: ot1mathkerncmss.fd 2020/01/31 Fontinst v1.933 font definitions for OT1/mathkerncmss.
+) [6
+
+] [7
 
 ]
-<figures/detector.pdf, id=192, 1031.89519pt x 1626.58693pt>
+<figures/detector.pdf, id=222, 1031.89519pt x 1626.58693pt>
 File: figures/detector.pdf Graphic file (type pdf)
 <use figures/detector.pdf>
-Package pdftex.def Info: figures/detector.pdf  used on input line 38.
+Package pdftex.def Info: figures/detector.pdf  used on input line 44.
 (pdftex.def)             Requested size: 148.7156pt x 234.4304pt.
- [7
-
- <./figures/detector.pdf>]
-<figures/highlight.jpg, id=265, 1606.0pt x 1204.5pt>
-File: figures/highlight.jpg Graphic file (type jpg)
-<use figures/highlight.jpg>
-Package pdftex.def Info: figures/highlight.jpg  used on input line 42.
-(pdftex.def)             Requested size: 277.84398pt x 208.38478pt.
  [8
 
+ <./figures/detector.pdf>]
+<figures/highlight.jpg, id=294, 1606.0pt x 1204.5pt>
+File: figures/highlight.jpg Graphic file (type jpg)
+<use figures/highlight.jpg>
+Package pdftex.def Info: figures/highlight.jpg  used on input line 48.
+(pdftex.def)             Requested size: 277.84398pt x 208.38478pt.
+ [9
+
  <./figures/highlight.jpg>]
-<figures/station-map.png, id=292, 614.57953pt x 794.97pt>
+<figures/station-map.png, id=321, 614.57953pt x 794.97pt>
 File: figures/station-map.png Graphic file (type png)
 <use figures/station-map.png>
-Package pdftex.def Info: figures/station-map.png  used on input line 46.
+Package pdftex.def Info: figures/station-map.png  used on input line 52.
 (pdftex.def)             Requested size: 201.37708pt x 260.48pt.
 
-Overfull \vbox (23.8735pt too high) detected at line 46
+Overfull \vbox (23.8735pt too high) detected at line 52
  []
 
-[9
+[10
 
  <./figures/station-map.png>]
-<figures/mechanism.png, id=321, 1606.0pt x 803.0pt>
-File: figures/mechanism.png Graphic file (type png)
-<use figures/mechanism.png>
-Package pdftex.def Info: figures/mechanism.png  used on input line 50.
-(pdftex.def)             Requested size: 342.2953pt x 171.14679pt.
- [10
-
- <./figures/mechanism.png>]
-LaTeX Font Info:    Font shape `OT1/cmss/b/n' in size <10.95> not available
-(Font)              Font shape `OT1/cmss/bx/n' tried instead on input line 60.
-LaTeX Font Info:    Font shape `OT1/cmss/b/n' in size <8> not available
-(Font)              Font shape `OT1/cmss/bx/n' tried instead on input line 60.
-LaTeX Font Info:    Font shape `OT1/cmss/b/n' in size <6> not available
-(Font)              Font shape `OT1/cmss/bx/n' tried instead on input line 60.
+<figures/range.jpg, id=349, 1003.75pt x 481.8pt>
+File: figures/range.jpg Graphic file (type jpg)
+<use figures/range.jpg>
+Package pdftex.def Info: figures/range.jpg  used on input line 56.
+(pdftex.def)             Requested size: 342.2953pt x 164.30238pt.
  [11
 
+ <./figures/range.jpg>] [12
+
 ]
+File: figures/mechanism.png Graphic file (type png)
+<use figures/mechanism.png>
+Package pdftex.def Info: figures/mechanism.png  used on input line 63.
+(pdftex.def)             Requested size: 342.2953pt x 171.14679pt.
+ [13
+
+]
+LaTeX Font Info:    Font shape `OT1/cmss/b/n' in size <10.95> not available
+(Font)              Font shape `OT1/cmss/bx/n' tried instead on input line 73.
+LaTeX Font Info:    Font shape `OT1/cmss/b/n' in size <8> not available
+(Font)              Font shape `OT1/cmss/bx/n' tried instead on input line 73.
+LaTeX Font Info:    Font shape `OT1/cmss/b/n' in size <6> not available
+(Font)              Font shape `OT1/cmss/bx/n' tried instead on input line 73.
+ [14
+
+]
+<figures/detector-illustration.png, id=460, 462.528pt x 346.896pt>
+File: figures/detector-illustration.png Graphic file (type png)
+<use figures/detector-illustration.png>
+Package pdftex.def Info: figures/detector-illustration.png  used on input line 77.
+(pdftex.def)             Requested size: 342.2953pt x 256.73607pt.
+
+Overfull \vbox (20.12958pt too high) detected at line 77
+ []
+
+[15
+
+ <./figures/detector-illustration.png>]
+<figures/iterative_explanation.png, id=488, 997.47656pt x 379.60768pt>
+File: figures/iterative_explanation.png Graphic file (type png)
+<use figures/iterative_explanation.png>
+Package pdftex.def Info: figures/iterative_explanation.png  used on input line 81.
+(pdftex.def)             Requested size: 342.2953pt x 130.26392pt.
+ [16
+
+ <./figures/iterative_explanation.png>]
 \tf@nav=\write6
 \openout6 = `presentation.nav'.
 
@@ -778,18 +815,18 @@ Package rerunfilecheck Info: File `presentation.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 21779 strings out of 478238
- 424394 string characters out of 5850455
- 675242 words of memory out of 5000000
- 39530 multiletter control sequences out of 15000+600000
+ 21820 strings out of 478238
+ 425219 string characters out of 5850456
+ 675160 words of memory out of 5000000
+ 39558 multiletter control sequences out of 15000+600000
  477247 words of font info for 56 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 128i,15n,122p,452b,562s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 128i,15n,122p,444b,562s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmss10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmss12.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmss8.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmssbx10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmssi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmssi8.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb>
-Output written on presentation.pdf (11 pages, 3604275 bytes).
+Output written on presentation.pdf (16 pages, 4039036 bytes).
 PDF statistics:
- 429 PDF objects out of 1000 (max. 8388607)
- 352 compressed objects within 4 object streams
- 23 named destinations out of 1000 (max. 500000)
- 79 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 568 PDF objects out of 1000 (max. 8388607)
+ 480 compressed objects within 5 object streams
+ 33 named destinations out of 1000 (max. 500000)
+ 94 words of extra memory for PDF output out of 10000 (max. 10000000)
 
