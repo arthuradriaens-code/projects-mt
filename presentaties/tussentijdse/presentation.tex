@@ -66,6 +66,10 @@ Eikonal:
   \begin{equation}
     \mathbf{\nabla} n \approx n(\mathbf{r})\frac{d^2\mathbf{r}}{ds^2}
   \end{equation}
+\begin{figure}
+\centering
+\includegraphics[width=0.5\textwidth]{figures/ExplanationRadiopropa.png}
+\end{figure}
 Exponential model:
   \begin{equation}
     n(z) = n_0 - \Delta n \ e^{-z/z_0}
@@ -78,5 +82,33 @@ Exponential model:
 \begin{frame}{Iterative Ray tracer}
   \centering
   \includegraphics[width=\textwidth]{figures/iterative_explanation.png}
+\end{frame}
+\begin{frame}{Hybrid Ray tracer}
+	What we want?: Scipy
+\end{frame}
+\begin{frame}{Hybrid Ray tracer}
+  \centering
+  \includegraphics[width=\textwidth]{figures/FullHybridIllu.png}
+\end{frame}
+\begin{frame}{Hybrid Ray tracer: Optimization}
+  \centering
+  \includegraphics[width=\textwidth]{figures/subplotallsphereandstep.pdf}
+\end{frame}
+\begin{frame}{Hybrid Ray tracer: Optimization}
+	\begin{minipage}{0.49\textwidth}
+	\begin{figure}
+		\centering
+		\includegraphics[width=\textwidth]{figures/hybrid_comparison_N_500.pdf}
+		\caption{Hybrid}
+	\end{figure}
+	\end{minipage}
+	\begin{minipage}{0.49\textwidth}
+	\begin{figure}
+		\centering
+		\includegraphics[width=\textwidth]{figures/iterative_comparison_N_500.pdf}
+		\caption{Iterative}
+	\end{figure}
+	\end{minipage}
+i.e more accurate whilst being $\approx$ 30\% faster (30\% more computations per second) than the iterative ray tracer
 \end{frame}
 \end{document}

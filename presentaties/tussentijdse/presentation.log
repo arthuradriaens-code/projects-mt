@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022/Arch Linux) (preloaded format=pdflatex 2022.12.8)  14 FEB 2023 14:00
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022/Arch Linux) (preloaded format=pdflatex 2023.2.15)  15 FEB 2023 11:10
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -773,34 +773,70 @@ Package pdftex.def Info: figures/mechanism.png  used on input line 63.
 
 ]
 LaTeX Font Info:    Font shape `OT1/cmss/b/n' in size <10.95> not available
-(Font)              Font shape `OT1/cmss/bx/n' tried instead on input line 73.
+(Font)              Font shape `OT1/cmss/bx/n' tried instead on input line 77.
 LaTeX Font Info:    Font shape `OT1/cmss/b/n' in size <8> not available
-(Font)              Font shape `OT1/cmss/bx/n' tried instead on input line 73.
+(Font)              Font shape `OT1/cmss/bx/n' tried instead on input line 77.
 LaTeX Font Info:    Font shape `OT1/cmss/b/n' in size <6> not available
-(Font)              Font shape `OT1/cmss/bx/n' tried instead on input line 73.
+(Font)              Font shape `OT1/cmss/bx/n' tried instead on input line 77.
+<figures/ExplanationRadiopropa.png, id=430, 441.5697pt x 264.5082pt>
+File: figures/ExplanationRadiopropa.png Graphic file (type png)
+<use figures/ExplanationRadiopropa.png>
+Package pdftex.def Info: figures/ExplanationRadiopropa.png  used on input line 77.
+(pdftex.def)             Requested size: 171.14764pt x 102.52007pt.
  [14
 
-]
-<figures/detector-illustration.png, id=460, 462.528pt x 346.896pt>
+ <./figures/ExplanationRadiopropa.png>]
+<figures/detector-illustration.png, id=462, 462.528pt x 346.896pt>
 File: figures/detector-illustration.png Graphic file (type png)
 <use figures/detector-illustration.png>
-Package pdftex.def Info: figures/detector-illustration.png  used on input line 77.
+Package pdftex.def Info: figures/detector-illustration.png  used on input line 81.
 (pdftex.def)             Requested size: 342.2953pt x 256.73607pt.
 
-Overfull \vbox (20.12958pt too high) detected at line 77
+Overfull \vbox (20.12958pt too high) detected at line 81
  []
 
 [15
 
  <./figures/detector-illustration.png>]
-<figures/iterative_explanation.png, id=488, 997.47656pt x 379.60768pt>
+<figures/iterative_explanation.png, id=491, 997.47656pt x 379.60768pt>
 File: figures/iterative_explanation.png Graphic file (type png)
 <use figures/iterative_explanation.png>
-Package pdftex.def Info: figures/iterative_explanation.png  used on input line 81.
+Package pdftex.def Info: figures/iterative_explanation.png  used on input line 85.
 (pdftex.def)             Requested size: 342.2953pt x 130.26392pt.
  [16
 
- <./figures/iterative_explanation.png>]
+ <./figures/iterative_explanation.png>] [17
+
+]
+<figures/FullHybridIllu.png, id=545, 974.30667pt x 649.76083pt>
+File: figures/FullHybridIllu.png Graphic file (type png)
+<use figures/FullHybridIllu.png>
+Package pdftex.def Info: figures/FullHybridIllu.png  used on input line 92.
+(pdftex.def)             Requested size: 342.2953pt x 228.27234pt.
+ [18
+
+ <./figures/FullHybridIllu.png>]
+<figures/subplotallsphereandstep.pdf, id=573, 982.87201pt x 524.68018pt>
+File: figures/subplotallsphereandstep.pdf Graphic file (type pdf)
+<use figures/subplotallsphereandstep.pdf>
+Package pdftex.def Info: figures/subplotallsphereandstep.pdf  used on input line 96.
+(pdftex.def)             Requested size: 342.2953pt x 182.72813pt.
+ [19
+
+ <./figures/subplotallsphereandstep.pdf>]
+<figures/hybrid_comparison_N_500.pdf, id=656, 462.52798pt x 346.89601pt>
+File: figures/hybrid_comparison_N_500.pdf Graphic file (type pdf)
+<use figures/hybrid_comparison_N_500.pdf>
+Package pdftex.def Info: figures/hybrid_comparison_N_500.pdf  used on input line 113.
+(pdftex.def)             Requested size: 167.72658pt x 125.7929pt.
+<figures/iterative_comparison_N_500.pdf, id=657, 462.52798pt x 346.89601pt>
+File: figures/iterative_comparison_N_500.pdf Graphic file (type pdf)
+<use figures/iterative_comparison_N_500.pdf>
+Package pdftex.def Info: figures/iterative_comparison_N_500.pdf  used on input line 113.
+(pdftex.def)             Requested size: 167.72658pt x 125.7929pt.
+ [20
+
+ <./figures/hybrid_comparison_N_500.pdf> <./figures/iterative_comparison_N_500.pdf>]
 \tf@nav=\write6
 \openout6 = `presentation.nav'.
 
@@ -815,18 +851,18 @@ Package rerunfilecheck Info: File `presentation.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 21820 strings out of 478238
- 425219 string characters out of 5850456
+ 21893 strings out of 478238
+ 427220 string characters out of 5850456
  675160 words of memory out of 5000000
- 39558 multiletter control sequences out of 15000+600000
- 477247 words of font info for 56 fonts, out of 8000000 for 9000
+ 39618 multiletter control sequences out of 15000+600000
+ 477552 words of font info for 57 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  128i,15n,122p,444b,562s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmss10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmss12.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmss8.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmssbx10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmssi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmssi8.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb>
-Output written on presentation.pdf (16 pages, 4039036 bytes).
+Output written on presentation.pdf (20 pages, 4449233 bytes).
 PDF statistics:
- 568 PDF objects out of 1000 (max. 8388607)
- 480 compressed objects within 5 object streams
- 33 named destinations out of 1000 (max. 500000)
- 94 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 818 PDF objects out of 1000 (max. 8388607)
+ 599 compressed objects within 6 object streams
+ 41 named destinations out of 1000 (max. 500000)
+ 119 words of extra memory for PDF output out of 10000 (max. 10000000)
 
