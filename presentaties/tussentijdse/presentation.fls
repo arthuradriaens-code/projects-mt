@@ -1279,11 +1279,6 @@ INPUT ./figures/detector.pdf
 INPUT figures/detector.pdf
 INPUT ./figures/detector.pdf
 INPUT ./figures/detector.pdf
-INPUT ./figures/highlight.jpg
-INPUT ./figures/highlight.jpg
-INPUT figures/highlight.jpg
-INPUT ./figures/highlight.jpg
-INPUT ./figures/highlight.jpg
 INPUT ./figures/station-map.png
 INPUT ./figures/station-map.png
 INPUT figures/station-map.png
