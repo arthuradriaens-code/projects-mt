@@ -7,8 +7,6 @@ import logging
 logging.basicConfig()
 
 c = 299792458 #(m/s)
-n = 1.78
-v = c/n
 
 logger = logging.getLogger('ray_tracing_modules')
 
@@ -80,37 +78,38 @@ plt.xlabel("horizontal distance (m)")
 plt.title("Greenland simple trajectory with GL1 attenuation\n solved with hybrid ray tracer")
 plt.show()
 
-def delta_taccent(theta,deltaz):
+def delta_taccent(theta,deltaz,n=1.78):
+    v = c/n
     return ((np.cos(theta)*deltaz)/v)*(10**9)
 
 thetas = np.linspace(0,np.pi,1000)
+NumberOfDetectors = len(Detectors)
+delta_t = np.zeros((NumberOfDetectors,NumberOfDetectors,1000))
+delta_taccenten = np.zeros((NumberOfDetectors,NumberOfDetectors,1000))
+correlation = np.zeros((NumberOfDetectors,NumberOfDetectors,1000))
+normedcorrelation = np.zeros((NumberOfDetectors,NumberOfDetectors,1000))
+summedcorrelation = np.zeros(1000)
 
-delta_taccenten01 = delta_taccent(thetas,1)
-delta_t01 = traveltimes[0]-traveltimes[1]
-plt.plot(thetas,np.abs(delta_t01 - delta_taccenten01))
-
-delta_taccenten02 = delta_taccent(thetas,2)
-delta_t02 = traveltimes[0]-traveltimes[2]
-plt.plot(thetas,np.abs(delta_t02 - delta_taccenten02))
-
-delta_taccenten03 = delta_taccent(thetas,3)
-delta_t03 = traveltimes[0]-traveltimes[3]
-plt.plot(thetas,np.abs(delta_t03 - delta_taccenten03))
-
-delta_taccenten12 = delta_taccent(thetas,1)
-delta_t12 = traveltimes[1]-traveltimes[2]
-plt.plot(thetas,np.abs(delta_t12 - delta_taccenten12))
-
-delta_taccenten13 = delta_taccent(thetas,2)
-delta_t13 = traveltimes[1]-traveltimes[3]
-plt.plot(thetas,np.abs(delta_t13 - delta_taccenten13))
-
-delta_taccenten23 = delta_taccent(thetas,1)
-delta_t23 = traveltimes[2]-traveltimes[3]
-plt.plot(thetas,np.abs(delta_t23 - delta_taccenten23))
+for i in range(NumberOfDetectors):
+    for j in range(NumberOfDetectors):
+        if i < j:
+            delta_t[i][j] = traveltimes[i] - traveltimes[j]
+            delta_taccenten[i][j] = delta_taccent(thetas,np.abs(np.linalg.norm(Detectors[i]-Detectors[j])))
+            correlation[i][j] = np.abs(delta_t[i][j] - delta_taccenten[i][j])
+            normedcorrelation[i][j] = correlation[i][j]/np.trapz(correlation[i][j],thetas)
+            summedcorrelation += normedcorrelation[i][j]
+            plt.plot(thetas,normedcorrelation[i][j])
 
 plt.xlabel("theta (rad)")
 plt.ylabel("correlation")
 plt.title("correlation versus zenith")
 
 plt.show()
+
+plt.plot(thetas,summedcorrelation)
+plt.xlabel("theta (rad)")
+plt.ylabel("correlation")
+plt.title("correlation versus zenith")
+
+plt.show()
+
