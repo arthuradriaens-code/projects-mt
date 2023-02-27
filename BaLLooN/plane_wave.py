@@ -6,6 +6,12 @@ import numpy as np
 import logging
 logging.basicConfig()
 
+def CalcAngleToGround(a):
+    lena = np.sqrt(np.dot(a,a)) #normalize
+    return np.arccos(np.dot(a,np.array([0,0,-1]))/lena)
+def degreetorad(deg):
+    return deg*np.pi/180
+
 c = 299792458 #(m/s)
 
 logger = logging.getLogger('ray_tracing_modules')
@@ -17,13 +23,11 @@ Detectors[1] = np.array([0., 0., -96.]) * units.m
 Detectors[2] = np.array([0., 0., -95.]) * units.m
 Detectors[3] = np.array([0., 0., -94.]) * units.m
 plt.plot([0,0,0,0], [-97,-96,-95,-94], 'bo')
-traveltimes = []
-def CalcAngleToGround(a):
-    lena = np.sqrt(np.dot(a,a)) #normalize
-    return np.arccos(np.dot(a,np.array([0,0,-1]))/lena)
-def degreetorad(deg):
-    return deg*np.pi/180
 
+Balloon = np.array([ 10.0,0.,150.0])*units.m
+
+
+traveltimes = []
 paths = []
 times = []
 distances = []
@@ -44,11 +48,11 @@ configh['speedup'] = dict(
     delta_C_cut = 40 * units.degree
 )
 
-plt.plot([33], [150], 'bo')
+plt.plot([Balloon[0]], [Balloon[2]], 'bo')
 
-prop = radioproparaytracing.radiopropa_ray_tracing(medium.greenland_simple(), attenuation_model='GL1',config=configh)
+prop = radioproparaytracing.radiopropa_ray_tracing(medium.greenland_firn(), attenuation_model='GL1',config=configh)
 for detector in Detectors:
-    start_point = np.array([ 33.0,0.,150.0])*units.m
+    start_point = Balloon
     final_point = detector
     prop.set_start_and_end_point(start_point, final_point)
     prop.find_solutions()
@@ -78,13 +82,14 @@ plt.xlabel("horizontal distance (m)")
 plt.title("Greenland simple trajectory with GL1 attenuation\n solved with hybrid ray tracer")
 plt.show()
 
-def delta_taccent(theta,deltaz,n=1.78):
+def delta_taccent(theta,deltaz,position):
+    n=medium.greenland_firn.get_index_of_refraction(medium.greenland_firn(),position)
     v = c/n
     return ((np.cos(theta)*deltaz)/v)*(10**9)
 
-thetas = np.linspace(0,np.pi,1000)
+thetas = np.linspace(0,np.pi/2,1000)
 NumberOfDetectors = len(Detectors)
-delta_t = np.zeros((NumberOfDetectors,NumberOfDetectors,1000))
+delta_t = np.zeros((NumberOfDetectors,NumberOfDetectors))
 delta_taccenten = np.zeros((NumberOfDetectors,NumberOfDetectors,1000))
 correlation = np.zeros((NumberOfDetectors,NumberOfDetectors,1000))
 normedcorrelation = np.zeros((NumberOfDetectors,NumberOfDetectors,1000))
@@ -94,22 +99,50 @@ for i in range(NumberOfDetectors):
     for j in range(NumberOfDetectors):
         if i < j:
             delta_t[i][j] = traveltimes[i] - traveltimes[j]
-            delta_taccenten[i][j] = delta_taccent(thetas,np.abs(np.linalg.norm(Detectors[i]-Detectors[j])))
+            deltaz = np.linalg.norm(Detectors[i]-Detectors[j])
+            position = Detectors[i] + np.array([0,0,deltaz/2])
+            delta_taccenten[i][j] = delta_taccent(thetas,np.abs(deltaz),position)
             correlation[i][j] = np.abs(delta_t[i][j] - delta_taccenten[i][j])
             normedcorrelation[i][j] = correlation[i][j]/np.trapz(correlation[i][j],thetas)
+
             summedcorrelation += normedcorrelation[i][j]
             plt.plot(thetas,normedcorrelation[i][j])
 
 plt.xlabel("theta (rad)")
 plt.ylabel("correlation")
 plt.title("correlation versus zenith")
-
 plt.show()
 
 plt.plot(thetas,summedcorrelation)
 plt.xlabel("theta (rad)")
 plt.ylabel("correlation")
-plt.title("correlation versus zenith")
-
+angle_index = np.where(summedcorrelation == summedcorrelation.min())
+angle = thetas[angle_index] #zenith ofc
+plt.title("correlation versus zenith with minimum at{0:.6f}".format(angle[0]))
 plt.show()
+
+
+plt.plot([0,0,0,0], [-97,-96,-95,-94], 'bo')
+plt.plot([Balloon[0]], [Balloon[2]], 'bo')
+for detector in Detectors:
+    for Sol in range(SolNumber):
+        plt.plot(x,z,color='orange')
+        plt.plot(np.abs(paths[-1][:,0]),paths[-1][:,2],label="travel time = {0:.2f} nanoseconds".format(traveltime) ,color="orange")
+
+b_ballon = -95.5
+a_ballon = (Balloon[2]-b_ballon)/Balloon[0]
+x = np.linspace(0,Balloon[0])
+plt.plot(x,a_ballon*x + b_ballon,color="blue")
+a_refracted = np.tan(np.pi/2-angle)
+b_refracted = -95.5
+plt.plot(x,a_refracted*x + b_refracted,color="red")
+plt.ylabel("vertical distance (m)")
+plt.xlabel("horizontal distance (m)")
+plt.title("Greenland simple trajectory with GL1 attenuation\n solved with hybrid ray tracer")
+plt.ylim(-100,Balloon[2]+5)
+plt.show()
+
+print("difference in angle between direct to balloon and plane wave reconstruction:")
+direct_angle = np.pi/2 - np.arctan(a_ballon)
+print(direct_angle - angle)
 
