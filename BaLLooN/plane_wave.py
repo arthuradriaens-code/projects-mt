@@ -13,6 +13,7 @@ def degreetorad(deg):
     return deg*np.pi/180
 
 c = 299792458 #(m/s)
+ice = medium.greenland_simple()
 
 logger = logging.getLogger('ray_tracing_modules')
 
@@ -24,7 +25,7 @@ Detectors[2] = np.array([0., 0., -95.]) * units.m
 Detectors[3] = np.array([0., 0., -94.]) * units.m
 plt.plot([0,0,0,0], [-97,-96,-95,-94], 'bo')
 
-Balloon = np.array([ 10.0,0.,150.0])*units.m
+Balloon = np.array([ 30.0,0.,150.0])*units.m
 
 
 traveltimes = []
@@ -50,7 +51,7 @@ configh['speedup'] = dict(
 
 plt.plot([Balloon[0]], [Balloon[2]], 'bo')
 
-prop = radioproparaytracing.radiopropa_ray_tracing(medium.greenland_firn(), attenuation_model='GL1',config=configh)
+prop = radioproparaytracing.radiopropa_ray_tracing(ice, attenuation_model='GL1',config=configh)
 for detector in Detectors:
     start_point = Balloon
     final_point = detector
@@ -80,10 +81,11 @@ for detector in Detectors:
 plt.ylabel("vertical distance (m)")
 plt.xlabel("horizontal distance (m)")
 plt.title("Greenland simple trajectory with GL1 attenuation\n solved with hybrid ray tracer")
+plt.axhline(y=0, color='black', linestyle='-')
 plt.show()
 
 def delta_taccent(theta,deltaz,position):
-    n=medium.greenland_firn.get_index_of_refraction(medium.greenland_firn(),position)
+    n = ice.get_index_of_refraction(np.array(position))
     v = c/n
     return ((np.cos(theta)*deltaz)/v)*(10**9)
 
@@ -106,7 +108,7 @@ for i in range(NumberOfDetectors):
             normedcorrelation[i][j] = correlation[i][j]/np.trapz(correlation[i][j],thetas)
 
             summedcorrelation += normedcorrelation[i][j]
-            plt.plot(thetas,normedcorrelation[i][j])
+            plt.plot(thetas,normedcorrelation[i][j],label="{}{}".format(i,j))
 
 plt.xlabel("theta (rad)")
 plt.ylabel("correlation")
@@ -140,8 +142,11 @@ plt.ylabel("vertical distance (m)")
 plt.xlabel("horizontal distance (m)")
 plt.title("Greenland simple trajectory with GL1 attenuation\n solved with hybrid ray tracer")
 plt.ylim(-100,Balloon[2]+5)
+plt.xlim(-1,Balloon[0])
 plt.show()
 
+print("plane wave angle")
+print(angle)
 print("difference in angle between direct to balloon and plane wave reconstruction:")
 direct_angle = np.pi/2 - np.arctan(a_ballon)
 print(direct_angle - angle)
