@@ -80,7 +80,7 @@ logging.basicConfig()
 
 logger = logging.getLogger('ray_tracing_modules')
 missed = 0
-amountofvertices = 10
+amountofvertices = 50
 
 xpoints = np.random.uniform(low=100, high=4000.0, size=amountofvertices)
 zpoints = np.random.uniform(low=-3000, high=-100.0, size=amountofvertices) 
