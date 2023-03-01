@@ -25,7 +25,7 @@ Detectors[2] = np.array([0., 0., -95.]) * units.m
 Detectors[3] = np.array([0., 0., -94.]) * units.m
 plt.plot([0,0,0,0], [-97,-96,-95,-94], 'bo')
 
-Balloon = np.array([ 5.0,0.,2000.0])*units.m
+Balloon = np.array([ 50.0,0.,200.0])*units.m
 
 
 traveltimes = []
@@ -74,7 +74,7 @@ for detector in Detectors:
         z = np.linspace(paths[-1][0,2],start_point[2],1000)
         zlen = z[-1]-z[0]
         diagonallen = np.sqrt(xlen*xlen + zlen*zlen) #(m)
-        #plt.plot(x,z,color='orange')
+        plt.plot(x,z,color='orange')
         traveltime = times[-1]/units.ns + (diagonallen/c)*(10**9) #ns
         traveltimes.append(traveltime)
         plt.plot(paths[-1][:,0],paths[-1][:,2],label="travel time = {0:.2f} nanoseconds".format(traveltime) ,color="orange")
@@ -142,8 +142,8 @@ plt.plot(x,a_refracted*x + b_refracted,color="red")
 plt.ylabel("vertical distance (m)")
 plt.xlabel("horizontal distance (m)")
 plt.title("Greenland simple trajectory with GL1 attenuation\n solved with hybrid ray tracer")
-#plt.ylim(-100,Balloon[2]+5)
-#plt.xlim(-1,Balloon[0])
+plt.ylim(-100,Balloon[2]+5)
+plt.xlim(-100,Balloon[2]+5)
 plt.show()
 
 print("plane wave angle")
@@ -152,5 +152,5 @@ print("direct angle")
 direct_angle = np.pi/2 - np.arctan(a_ballon)
 print(direct_angle)
 print("difference in angle between direct to balloon and plane wave reconstruction:")
-print(direct_angle - angle)
+print("{}%".format((direct_angle - angle)/angle))
 
