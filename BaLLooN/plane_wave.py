@@ -25,7 +25,7 @@ Detectors[2] = np.array([0., 0., -95.]) * units.m
 Detectors[3] = np.array([0., 0., -94.]) * units.m
 plt.plot([0,0,0,0], [-97,-96,-95,-94], 'bo')
 
-Balloon = np.array([ -20.0,0.,50.0])*units.m
+Balloon = np.array([ 5.0,0.,2000.0])*units.m
 
 
 traveltimes = []
@@ -40,8 +40,8 @@ configh['propagation'] = dict(
     focusing = False,
     radiopropa = dict(
         mode = 'hybrid minimizing',
-        iter_steps_channel = [25., 2., .5, .05], #unit is meter
-        iter_steps_zenith = [.5, .05, .005, .001], #unit is degree
+        iter_steps_channel = [25., 2., .5, .05,0.005], #unit is meter
+        iter_steps_zenith = [.5, .05, .005, .001,0.0001], #unit is degree
         auto_step_size = False,
         max_traj_length = 10000) #unit is meter
 )
@@ -144,8 +144,6 @@ plt.xlabel("horizontal distance (m)")
 plt.title("Greenland simple trajectory with GL1 attenuation\n solved with hybrid ray tracer")
 #plt.ylim(-100,Balloon[2]+5)
 #plt.xlim(-1,Balloon[0])
-plt.ylim(-100,-80)
-plt.xlim(-1,1)
 plt.show()
 
 print("plane wave angle")
