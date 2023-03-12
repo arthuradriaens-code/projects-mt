@@ -10,7 +10,7 @@ the_map = create_folium_map(tiles='opentopomap')
 #gpx_file_name = 'SMT_20220630_112143.gpx'  #Jess
 #gpx_file_name = 'SMT_20220701_231934.gpx' #Bob
 #gpx_file_name = 'SMT_20220715_231621.gpx' #Bob
-gpx_file_name = '/media/RNO-G/data/sonde/gpx/SMT_20220820_111609.gpx'
+gpx_file_name = '/media/RNO-G/data/sonde/gpx/SMT_20230107_231633.gpx'
 i = 0
 for track in read_gpx_file(gpx_file_name):
     continue
@@ -25,14 +25,13 @@ segment['time'][0]
 segment['time'][-1]
 
 #launch_time = datetime.datetime(2022,6,30,11,5,0,0,tzutc()) #Jess
-launch_time = datetime.datetime(2022,7,1,23,19,0,0,tzutc()) #Bob
-launch_time
+#launch_time = datetime.datetime(2022,7,1,23,19,0,0,tzutc()) #Bob
+#launch_time
 
 masked_segment = {key:[] for key in segment.keys()}
 masked_segment['elevation-up'] = segment['elevation-up']
 masked_segment['elevation-down'] = segment['elevation-down']
 for i, time in enumerate(segment['time']):
-    if time < launch_time: continue
 
     for key in list(segment.keys())[:-2]:
         masked_segment[key].append(segment[key][i])
@@ -86,11 +85,15 @@ folium.Marker(
     icon=folium.Icon(color="green"),
 ).add_to(the_map)
 
+folium.Marker(
+    location=[72.58279265212887, -38.45581495328228],
+    popup="DISC",
+    icon=folium.Icon(color="green"),
+).add_to(the_map)
+
 
 boundary = the_map.get_bounds()
 the_map.fit_bounds(boundary, padding=(3, 3))
 the_map
-# To display the map in a Jupyter notebook:
-the_map
-
-
+# To save the map:
+the_map.save('map_000.html')

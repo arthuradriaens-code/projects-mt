@@ -1,0 +1,5 @@
+Balloon filename (gpx),station,expected timeframe(s),run,event(s)
+SMT_20220820_111609.gpx,12,"2022-08-20 11:19:36+00:00
+until: 
+2022-08-20 11:21:16+00:00",528,
+,21,,,
