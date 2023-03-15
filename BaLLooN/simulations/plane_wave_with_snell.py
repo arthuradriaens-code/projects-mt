@@ -44,8 +44,8 @@ configh['speedup'] = dict(
     delta_C_cut = 40 * units.degree
 )
 
-xcoordinates = np.linspace(5.5,500,10)
-indexofrefractionrange = np.linspace(1,3,5000)
+xcoordinates = np.linspace(5.5,500,1000)
+indexofrefractionrange = np.linspace(1.27,2.5,5000)
 RelativeAccuracy = np.zeros(len(xcoordinates))
 BalloonAngle = np.zeros(len(xcoordinates))
 
@@ -81,6 +81,7 @@ with alive_bar(len(xcoordinates),title='Calculating relative angles',length=20,b
         differences = np.zeros(len(indexofrefractionrange))
 
         for number,n in enumerate(indexofrefractionrange):
+            #find plane wave
             thetas = np.linspace(0,np.pi/2,1000)
             NumberOfDetectors = len(Detectors)
             delta_t = np.zeros((NumberOfDetectors,NumberOfDetectors))
@@ -105,12 +106,16 @@ with alive_bar(len(xcoordinates),title='Calculating relative angles',length=20,b
             angle = thetas[angle_index] #zenith ofc
             b_ballon = -95.5
             a_ballon = (Balloon[2]-b_ballon)/Balloon[0]
-            x = np.linspace(0,Balloon[0])
-            a_refracted = np.tan(np.pi/2-angle)
-            b_refracted = -95.5
+            a_planewave = np.tan(np.pi/2-angle)
+            b_planewave = -95.5
 
-            direct_angle = np.pi/2 - np.arctan(a_ballon)
-            differences[number] = np.abs(direct_angle - angle)
+            angle_snell = np.arcsin(np.sin(angle)*1.27)
+            a_snell = np.tan(np.pi/2-angle_snell)
+            b_snell = -1*a_snell*(-1*b_planewave/a_planewave)
+            XopBallonHoogte = (Balloon[2] - b_snell)/a_snell
+            verschil = XopBallonHoogte - Balloon[0]
+
+            differences[number] = np.abs(verschil)
 
         n_index = np.where(differences == differences.min())
         n_fit = indexofrefractionrange[n_index]
