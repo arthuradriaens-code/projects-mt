@@ -144,7 +144,7 @@ plt.plot(x,a_refracted*x + b_refracted,color="red",label="Plane Wave Reconstruct
 plt.ylabel("vertical distance (m)")
 plt.xlabel("horizontal distance (m)")
 plt.title("Greenland simple trajectory with GL1 attenuation\n solved with hybrid ray tracer")
-plt.ylim(-100,Balloon[2]+5)
+plt.ylim(-100,Balloon[0]+5)
 plt.xlim(-100,Balloon[2]+5)
 plt.legend()
 plt.show()

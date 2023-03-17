@@ -14,6 +14,7 @@ def degreetorad(deg):
 
 c = 299792458 #(m/s)
 ice = medium.greenland_simple()
+n_icesurface = ice.get_index_of_refraction(np.array([0,0,-0.00001]))
 
 logger = logging.getLogger('ray_tracing_modules')
 
@@ -144,9 +145,9 @@ indexwhensurface = np.where(y > 0)[0][0]
 x = x[0:indexwhensurface]
 y = y[0:indexwhensurface]
 plt.plot(x,y,color="red",label="Plane Wave Reconstructed Path")
-angle_snell = np.arcsin(np.sin(angle)*1.27)
+angle_snell = np.arcsin(np.sin(angle)*n_icesurface)
 a_snell = np.tan(np.pi/2-angle_snell)
-b_snell = -1*a_snell*x[-1]
+b_snell = -1*a_snell*(-1*b_refracted/a_refracted)
 x = np.linspace(x[-1],Balloon[0])
 y = a_snell*x + b_snell
 plt.plot(x,y,color="red")
