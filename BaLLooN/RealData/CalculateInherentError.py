@@ -2,7 +2,6 @@
 # systematic error that's to be expected
 
 
-
 from gpxplotter import read_gpx_file, create_folium_map, add_segment_to_map
 import os
 from coordinate_system import CoordinateSystem
@@ -17,7 +16,7 @@ import csv
 #gpx_file_name = 'SMT_20220630_112143.gpx'  #Jess
 #gpx_file_name = 'SMT_20220701_231934.gpx' #Bob
 #gpx_file_name = 'SMT_20220715_231621.gpx' #Bob
-print("give the filename, e.g /data/balloon/SMT_20220701_231934.gpx")
+print("give the filename, e.g /data/sonde/gpx/SMT_20220701_231934.gpx")
 gpx_file = input()
 i = 0
 track = 0
@@ -29,9 +28,13 @@ segment = track['segments'][0]
 print("What station? E.g 21")
 StationNumber = input()
 stations = {21:[72.5874063909459,-38.4660301212611], 12:[72.6000868058195,-38.4962265332872],11:[72.5892267215905,-38.5022988244688], 13:[72.6109470001738,-38.4901465440588], 22:[72.598265271346,-38.4599355034766], 23:[72.6091242603966,-38.4538331609837] ,24:[72.6199833575357,-38.4477230792255]}
-StationCoordiante = stations[StationNumber]
+StationCoordinate = stations[int(StationNumber)]
 coor = CoordinateSystem()
 locallocationstation = coor.geodetic_to_enu(StationCoordinate[0],StationCoordinate[1],3251.9489147560234)
+
+masked_segment = {key:[] for key in segment.keys()}
+masked_segment['elevation-up'] = segment['elevation-up']
+masked_segment['elevation-down'] = segment['elevation-down']
 
 for i, time in enumerate(segment['time']):
     for key in list(segment.keys())[:-2]:
@@ -41,10 +44,16 @@ for key in list(segment.keys())[:-2]:
     if key in ['time','latlon']: continue
     masked_segment[key] = np.array(masked_segment[key])
 
-print("at what time? E.g 2022-07-24 23:19:27+00:00")
+print("at what time? E.g 2022/07/24/23/19/27")
 GivenTime = input()
-i = np.where(segment['time'] == GivenTime)
+GivenTime = GivenTime.split('/')
+GivenTime = datetime.datetime(int(GivenTime[0]), int(GivenTime[1]), int(GivenTime[2]),int(GivenTime[3]),int(GivenTime[4]),int(GivenTime[5]),tzinfo=tzutc())
+print(GivenTime)
+print(segment['time'][5])
+i = np.where((segment['time'] - GivenTime).total_seconds() < 1)
 BalloonPosition = coor.geodetic_to_enu(segment['lat'][i],segment['lon'][i],segment['elevation'][i])
+print("balloon height:")
+print(BalloonPosition[2])
 
 # Ok now we have our balloon position and the detector position, let's use the simulation 
 # part to figure out what the systematic error is.
@@ -100,7 +109,6 @@ for number,n in enumerate(indexofrefractionrange):
             if i < j:
                 delta_t[i][j] = traveltimes[i] - traveltimes[j]
                 deltaz = np.linalg.norm(Detectors[i]-Detectors[j])
-                position = np.array([0,0,-95.5])
                 delta_taccenten[i][j] = delta_taccent(thetas,np.abs(deltaz),n)
                 correlation[i][j] = np.abs(delta_t[i][j] - delta_taccenten[i][j])
                 normedcorrelation[i][j] = correlation[i][j]/np.trapz(correlation[i][j],thetas)
@@ -109,14 +117,11 @@ for number,n in enumerate(indexofrefractionrange):
 
     angle_index = np.where(summedcorrelation == summedcorrelation.min())
     angle = thetas[angle_index] #zenith ofc
-    b_ballon = -95.5
-    a_ballon = (Balloon[2]-b_ballon)/Balloon[0]
-    #Not yet correct
-    x = np.linspace(0,Balloon[0])
-    a_refracted = np.tan(np.pi/2-angle)
-    b_refracted = -95.5
 
-    direct_angle = np.pi/2 - np.arctan(a_ballon)
+    x_relative = Balloon[0] - Detectors[0][0]
+    y_relative = Balloon[1] - Detectors[0][1]
+    z_relative = Balloon[2] + 95.5
+    direct_angle = np.arccos(z_relative/(x_relative**2 + y_relative**2 + z_relative**2))
     differences[number] = np.abs(direct_angle - angle)
 
 n_index = np.where(differences == differences.min())
@@ -125,14 +130,12 @@ if len(n_fit) > 1:
     print("undetermined")
     print(n_fit)
     n_fit = n_fit[0]
-print(n_fit)
+print("index of refraction from fit: {}".format(n_fit))
 
 position = np.array([0,0,-95.5])
 direct_angle = np.pi/2 - np.arctan(a_ballon)
 
 n_actual = ice.get_index_of_refraction(position)
-print(n_actual)
+print("actual index of refraction from model: {}".format(n_actual))
 
-BalloonAngle[s] = degrees(direct_angle)
-RelativeAccuracy[s] = 100*(n_fit - n_actual)/n_actual
-
+print("relative accuracy: {}%".format(100*(n_fit - n_actual)/n_actual))
