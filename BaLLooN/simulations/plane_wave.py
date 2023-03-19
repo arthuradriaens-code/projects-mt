@@ -44,7 +44,7 @@ configh['speedup'] = dict(
     delta_C_cut = 40 * units.degree
 )
 
-xcoordinates = np.linspace(5.5,500,100)
+xcoordinates = np.linspace(5.5,50,500)
 indexofrefractionrange = np.linspace(1,3,5000)
 RelativeAccuracy = np.zeros(len(xcoordinates))
 BalloonAngle = np.zeros(len(xcoordinates))
