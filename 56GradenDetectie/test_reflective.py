@@ -31,7 +31,6 @@ configh['propagation'] = dict(
         iter_steps_channel = [25., 2., .5], #unit is meter
         iter_steps_zenith = [.5, .05, .005], #unit is degree
         auto_step_size = False,
-        n_reflections = 2,
         max_traj_length = 10000) #unit is meter
 )
 configh['speedup'] = dict(
@@ -40,7 +39,7 @@ configh['speedup'] = dict(
 
 prop = radioproparaytracing.radiopropa_ray_tracing(medium.mooresbay_simple(), attenuation_model='GL1',config=configh)
 
-start_point = np.array([ 182.80938104,0.,-55.50417894])*units.m
+start_point = np.array([ 482.80938104,0.,-105.50417894])*units.m
 prop.set_start_and_end_point(start_point, final_point)
 prop.find_solutions()
 SolNumber = prop.get_number_of_solutions()
@@ -61,7 +60,7 @@ plt.ylabel("vertical distance (m)")
 plt.xlabel("horizontal distance (m)")
 
 plt.gca().invert_xaxis()
-plt.title("mooresbay simple trajectory with GL1 attenuation\n solved with hybrid ray tracer")
+plt.title("Greenland simple trajectory with GL1 attenuation\n solved with hybrid ray tracer")
 
 plt.legend()
 plt.show()

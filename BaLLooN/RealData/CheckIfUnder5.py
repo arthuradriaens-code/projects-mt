@@ -83,13 +83,13 @@ with open('EventsBelow5Deg.csv', 'w', newline='') as csvfile:
 
                 folium.Marker(
                     location=[StartAndStopPositions[0][0],StartAndStopPositions[0][1]],
-                    popup="Start of <10° at {}".format(StartAndStopTimes[0]),
+                    popup="Start of <5° at {}".format(StartAndStopTimes[0]),
                     icon=folium.Icon(color="green"),
                 ).add_to(the_map)
 
                 folium.Marker(
                     location=[StartAndStopPositions[-1][0],StartAndStopPositions[-1][1]],
-                    popup="Stop of <10° at {}".format(StartAndStopTimes[-1]),
+                    popup="Stop of <5° at {}".format(StartAndStopTimes[-1]),
                     icon=folium.Icon(color="red"),
                 ).add_to(the_map)
 

@@ -14,8 +14,8 @@ import configs
 # Save the current stdout so that we can revert sys.stdout after we complete
 # our redirection
 stdout_fileno = sys.stdout
-StepsZenith = 0.85
-SphereSize = 80.
+StepsZenith = 0.7
+SphereSize = 45.
 
 confighybrid = dict()
 confighybrid['propagation'] = dict(
@@ -80,7 +80,7 @@ logging.basicConfig()
 
 logger = logging.getLogger('ray_tracing_modules')
 missed = 0
-amountofvertices = 500
+amountofvertices = 10
 
 xpoints = np.random.uniform(low=100, high=4000.0, size=amountofvertices)
 zpoints = np.random.uniform(low=-3000, high=-100.0, size=amountofvertices) 

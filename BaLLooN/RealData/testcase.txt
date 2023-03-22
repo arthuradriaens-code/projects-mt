@@ -1,0 +1,3 @@
+/home/arthur/Documents/thesis/data/sonde/gpx/SMT_20220921_111527.gpx
+12
+2022/09/21/11/27/55

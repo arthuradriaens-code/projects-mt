@@ -26,7 +26,7 @@ Detectors[2] = np.array([0., 0., -95.]) * units.m
 Detectors[3] = np.array([0., 0., -94.]) * units.m
 plt.plot([0,0,0,0], [-97,-96,-95,-94], 'bo')
 
-Balloon = np.array([ 100.0,0.,500.0])*units.m
+Balloon = np.array([ 1900.0,0.,2200.0])*units.m
 
 
 traveltimes = []

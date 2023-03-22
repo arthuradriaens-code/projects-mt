@@ -35,8 +35,8 @@ configh['propagation'] = dict(
     focusing = False,
     radiopropa = dict(
         mode = 'hybrid minimizing',
-        iter_steps_channel = [25., 2., .5, .05,0.005], #unit is meter
-        iter_steps_zenith = [.5, .05, .005, .001,0.0001], #unit is degree
+        iter_steps_channel = [45., 2., .5, .05,0.005], #unit is meter
+        iter_steps_zenith = [.7, .05, .005, .001,0.0001], #unit is degree
         auto_step_size = False,
         max_traj_length = 10000) #unit is meter
 )
