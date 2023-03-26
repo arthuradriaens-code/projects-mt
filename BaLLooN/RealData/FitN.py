@@ -8,25 +8,20 @@ from NuRadioReco.detector import detector
 from datetime import datetime
 import NuRadioReco.modules.io.rno_g.readRNOGData
 import radiotools.helper
+import time_difference_functions
 
 #file location
-filepath = "/home/arthur/Documents/thesis/data/interesting/station12/run687/combined.root"
+filepath = "/mnt/usb/RNO-G-DATA/station23/run691/combined.root"
 
 #detector file path
-pathToJson = "/home/arthur/Documents/thesis/programs/analysis-tools/rnog_analysis_tools/detector_json/RNO_season_2022.json"
+pathToJson = "/mnt/usb/detector_json/RNO_season_2022.json"
 
 #station number (id)
-station_id = 12
+station_id = 23
+channel_1 = 5
+channel_2 = 6
+template = None
+det = detector.Detector(json_filename=pathToJson)
 
-AddCableDelay = channelAddCableDelay.channelAddCableDelay()
-det = detector.Detector(json_filename = pathToJson)
-det.update(datetime.now())
-
-reader = NuRadioReco.modules.io.rno_g.readRNOGData.readRNOGData()
-reader.begin(filepath)
-n_channels = len([0,1,2,3])
-time_differences = np.zeros((n_channels, n_channels))
-reader.run(channels=np.array([0,1,2,3]),event_numbers={687:[6213]})
-events = reader.get_events()
-for event in events:
-    print(event)
+test = time_difference_functions.get_time_differences(station_id,channel_1,channel_2,det,passband=None)
+print(test)
