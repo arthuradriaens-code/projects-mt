@@ -103,11 +103,12 @@ Balloon[0] = r
 # channels:
 Detectorx = 0
 Detectory = 0
-Detectors = np.zeros((4,3))
-Detectors[0] = np.array([Detectorx, Detectory, -97.]) * units.m
-Detectors[1] = np.array([Detectorx, Detectory, -96.]) * units.m
-Detectors[2] = np.array([Detectorx, Detectory, -95.]) * units.m
-Detectors[3] = np.array([Detectorx, Detectory, -94.]) * units.m
+#Detectors = np.zeros((4,3))
+Detectors = np.zeros((2,3))
+Detectors[0] = np.array([Detectorx, Detectory, -80.]) * units.m
+Detectors[1] = np.array([Detectorx, Detectory, -60.]) * units.m
+#Detectors[2] = np.array([Detectorx, Detectory, -95.]) * units.m
+#Detectors[3] = np.array([Detectorx, Detectory, -94.]) * units.m
 
 traveltimes = []
 paths = []
@@ -190,7 +191,7 @@ if len(n_fit) > 1:
     n_fit = n_fit[0]
 print("index of refraction from fit: {}".format(n_fit))
 
-position = np.array([0,0,-95.5])
+position = np.array([0,0,-70])
 
 n_actual = ice.get_index_of_refraction(position)
 print("actual index of refraction from model: {}".format(n_actual))

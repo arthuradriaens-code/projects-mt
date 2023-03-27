@@ -1,27 +1,182 @@
+import NuRadioReco.detector.detector
 import numpy as np
-import matplotlib.pyplot as plt
-from NuRadioReco.modules.io.rno_g import rnogDataReader
+import radiotools
 from NuRadioReco.utilities import units
-from NuRadioReco.modules import channelAddCableDelay
-import logging
-from NuRadioReco.detector import detector
-from datetime import datetime
 import NuRadioReco.modules.io.rno_g.readRNOGData
-import radiotools.helper
-import time_difference_functions
+from NuRadioReco.modules import channelAddCableDelay
+from gpxplotter import read_gpx_file, create_folium_map, add_segment_to_map
+from NuRadioMC.utilities import medium
+from NuRadioMC.SignalProp import radioproparaytracing
+import matplotlib.pyplot as plt
+import os
+from coordinate_system import CoordinateSystem
+import datetime
+import folium
+from dateutil.tz import tzutc
+import copy
+import csv
 
-#file location
-filepath = "/mnt/usb/RNO-G-DATA/station23/run691/combined.root"
+#-------------------------------------------------------------------------------#
+#                               functions                                       #
+#-------------------------------------------------------------------------------#
 
-#detector file path
-pathToJson = "/mnt/usb/detector_json/RNO_season_2022.json"
+def CalcAngleToGround(a):
+    lena = np.sqrt(np.dot(a,a)) #normalize
+    return np.arccos(np.dot(a,np.array([0,0,-1]))/lena)
+def degreetorad(deg):
+    return deg*np.pi/180
+def degrees(SomethingInRads):
+    return SomethingInRads*180/np.pi
+def delta_taccent(theta,deltaz,n):
+    v = c/n
+    return ((np.cos(theta)*deltaz)/v)*(10**9)
 
-#station number (id)
+#-------------------------------------------------------------------------------#
+#                               constants                                       #
+#-------------------------------------------------------------------------------#
+c = 299792458 #(m/s)
+ice = medium.greenland_simple()
+indexofrefractionrange = np.linspace(1.27,2.5,10000)
+n_icesurface = ice.get_index_of_refraction(np.array([0,0,-0.00001]))
+
+#-------------------------------------------------------------------------------#
+#                               spatial data                                    #
+#-------------------------------------------------------------------------------#
+gpx_file = "/home/arthur/Documents/thesis/data/sonde/gpx/SMT_20220829_111459.gpx"
+StationNumber = 23
+GivenTime = "2022/08/29/11/18/32"
+i = 0
+track = 0
+for track in read_gpx_file(gpx_file):
+    continue
+segment = track['segments'][0]
+
+stations = {21:[72.5874063909459,-38.4660301212611], 12:[72.6000868058195,-38.4962265332872],11:[72.5892267215905,-38.5022988244688], 13:[72.6109470001738,-38.4901465440588], 22:[72.598265271346,-38.4599355034766], 23:[72.6091242603966,-38.4538331609837] ,24:[72.6199833575357,-38.4477230792255]}
+StationCoordinate = stations[int(StationNumber)]
+coor = CoordinateSystem()
+locallocationstation = coor.geodetic_to_enu(StationCoordinate[0],StationCoordinate[1])
+
+masked_segment = {key:[] for key in segment.keys()}
+masked_segment['elevation-up'] = segment['elevation-up']
+masked_segment['elevation-down'] = segment['elevation-down']
+
+for i, time in enumerate(segment['time']):
+    for key in list(segment.keys())[:-2]:
+        masked_segment[key].append(segment[key][i])
+
+for key in list(segment.keys())[:-2]:
+    if key in ['time','latlon']: continue
+    masked_segment[key] = np.array(masked_segment[key])
+
+GivenTime = GivenTime.split('/')
+GivenTime = datetime.datetime(int(GivenTime[0]), int(GivenTime[1]), int(GivenTime[2]),int(GivenTime[3]),int(GivenTime[4]),int(GivenTime[5]),tzinfo=tzutc())
+print("looking at the event recorded at:")
+print(GivenTime)
+for t,Time in enumerate(segment['time']):
+    if (Time - GivenTime).total_seconds() < 1: 
+        BalloonPosition = coor.geodetic_to_enu(segment['lat'][t],segment['lon'][t],segment['elevation'][t])
+print("balloon position:")
+print(BalloonPosition)
+
+# Ok now we have our balloon position and the detector position, 
+# We'll set the BalloonPosition relative to the detector:
+
+Balloon = np.array([BalloonPosition[0]-locallocationstation[0],BalloonPosition[1] - locallocationstation[1],BalloonPosition[2]] - locallocationstation[2])
+
+#And let's rotate to only have an x component, no y:
+r = np.sqrt(Balloon[0]**2 + Balloon[1]**2)
+Balloon[1] = 0
+Balloon[0] = r
+
+# channels:
+Detectorx = 0
+Detectory = 0
+Detectors = np.zeros((2,3))
+Detectors[0] = np.array([Detectorx, Detectory, -80.]) * units.m
+Detectors[1] = np.array([Detectorx, Detectory, -60.]) * units.m
+
+#-------------------------------------------------------------------------------#
+#                           Get observed time difference                        #
+#-------------------------------------------------------------------------------#
+
+# idk yet how this will work
+AddCableDelay = channelAddCableDelay.channelAddCableDelay()
+#detector
+det = NuRadioReco.detector.detector.Detector(json_filename="/home/arthur/Documents/thesis/programs/analysis-tools/rnog_analysis_tools/detector_json/RNO_season_2022.json", antenna_by_depth=False)
+# data reader
+data_reader = NuRadioReco.modules.io.rno_g.readRNOGData.readRNOGData()
+data_reader.begin("/home/arthur/Documents/thesis/data/interesting/station23/run691/combined.root")
+
 station_id = 23
-channel_1 = 5
-channel_2 = 6
-template = None
-det = detector.Detector(json_filename=pathToJson)
+channel_a_id = 5
+channel_b_id = 6
 
-test = time_difference_functions.get_time_differences(station_id,channel_1,channel_2,det,passband=None)
-print(test)
+# get event
+for event in data_reader.run():
+    if event.get_id()==489:
+        print("found you")
+        break
+
+# get time difference (needs to be improved)
+station = event.get_station(station_id)
+det.update(station.get_station_time())
+channel_a = station.get_channel(channel_a_id)
+cable_delay_a = det.get_cable_delay(station_id,channel_a_id)
+channel_b = station.get_channel(channel_b_id)
+cable_delay_b = det.get_cable_delay(station_id,channel_b_id)
+corr = radiotools.helper.get_normalized_xcorr(channel_a.get_trace(), channel_b.get_trace())
+difference = corr.argmax()
+
+NumberOfDetectors = len(Detectors)
+delta_t = np.zeros((NumberOfDetectors,NumberOfDetectors))
+delta_t[0][1] = difference
+#-------------------------------------------------------------------------------#
+#                                   Fit n                                       #
+#-------------------------------------------------------------------------------#
+differences = np.zeros(len(indexofrefractionrange))
+
+b_ballon = -70
+a_ballon = (Balloon[2]-b_ballon)/Balloon[0]
+
+for number,n in enumerate(indexofrefractionrange):
+    thetas = np.linspace(0,np.pi/2,1000)
+    delta_taccenten = np.zeros((NumberOfDetectors,NumberOfDetectors,1000))
+    correlation = np.zeros((NumberOfDetectors,NumberOfDetectors,1000))
+    normedcorrelation = np.zeros((NumberOfDetectors,NumberOfDetectors,1000))
+    summedcorrelation = np.zeros(1000)
+
+    for i in range(NumberOfDetectors):
+        for j in range(NumberOfDetectors):
+            if i < j:
+                deltaz = np.linalg.norm(Detectors[i]-Detectors[j])
+                delta_taccenten[i][j] = delta_taccent(thetas,np.abs(deltaz),n)
+                correlation[i][j] = np.abs(delta_t[i][j] - delta_taccenten[i][j])
+                normedcorrelation[i][j] = correlation[i][j]/np.trapz(correlation[i][j],thetas)
+
+                summedcorrelation += normedcorrelation[i][j]
+
+    angle_index = np.where(summedcorrelation == summedcorrelation.min())
+    angle = thetas[angle_index] #zenith ofc
+
+    a_planewave = np.tan(np.pi/2-angle)
+    b_planewave = -70
+
+    angle_snell = np.arcsin(np.sin(angle)*n_icesurface)
+    a_snell = np.tan(np.pi/2-angle_snell)
+    b_snell = -1*a_snell*(-1*b_planewave/a_planewave)
+    XopBallonHoogte = (Balloon[2] - b_snell)/a_snell
+    verschil = XopBallonHoogte - Balloon[0]
+
+    differences[number] = np.abs(verschil)
+
+print("minimal difference between timing:")
+print(differences.min())
+n_index = np.where(differences == differences.min())
+n_fit = indexofrefractionrange[n_index]
+if len(n_fit) > 1:
+    print("undetermined")
+    print(n_fit)
+    n_fit = n_fit[0]
+print("index of refraction from fit: {}".format(n_fit))
+
+
