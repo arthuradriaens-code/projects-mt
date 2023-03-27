@@ -19,14 +19,17 @@ n_icesurface = ice.get_index_of_refraction(np.array([0,0,-0.00001]))
 logger = logging.getLogger('ray_tracing_modules')
 
 # Let us work on the y = 0 plane
-Detectors = np.zeros((4,3))
-Detectors[0] = np.array([0., 0., -97.]) * units.m
-Detectors[1] = np.array([0., 0., -96.]) * units.m
-Detectors[2] = np.array([0., 0., -95.]) * units.m
-Detectors[3] = np.array([0., 0., -94.]) * units.m
-plt.plot([0,0,0,0], [-97,-96,-95,-94], 'bo')
+#Detectors = np.zeros((4,3))
+#Detectors[0] = np.array([0., 0., -97.]) * units.m
+#Detectors[1] = np.array([0., 0., -96.]) * units.m
+#Detectors[2] = np.array([0., 0., -95.]) * units.m
+#Detectors[3] = np.array([0., 0., -94.]) * units.m
+#plt.plot([0,0,0,0], [-97,-96,-95,-94], 'bo')
+Detectors = np.zeros((2,3))
+Detectors[0] = np.array([0., 0., -80.]) * units.m
+Detectors[1] = np.array([0., 0., -60.]) * units.m
 
-Balloon = np.array([ 1900.0,0.,2200.0])*units.m
+Balloon = np.array([ 266.0,0.,1163.0])*units.m
 
 
 traveltimes = []
@@ -41,8 +44,8 @@ configh['propagation'] = dict(
     focusing = False,
     radiopropa = dict(
         mode = 'hybrid minimizing',
-        iter_steps_channel = [25., 2., .5, .05,0.005], #unit is meter
-        iter_steps_zenith = [.5, .05, .005, .001,0.0001], #unit is degree
+        iter_steps_channel = [45., 2., .5, .05,0.005], #unit is meter
+        iter_steps_zenith = [.7, .05, .005, .001,0.0001], #unit is degree
         auto_step_size = False,
         max_traj_length = 10000) #unit is meter
 )

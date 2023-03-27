@@ -51,10 +51,18 @@ for track in read_gpx_file(gpx_file):
     continue
 segment = track['segments'][0]
 
-stations = {21:[72.5874063909459,-38.4660301212611], 12:[72.6000868058195,-38.4962265332872],11:[72.5892267215905,-38.5022988244688], 13:[72.6109470001738,-38.4901465440588], 22:[72.598265271346,-38.4599355034766], 23:[72.6091242603966,-38.4538331609837] ,24:[72.6199833575357,-38.4477230792255]}
+stations = {21:[72.5874063909459,-38.4660301212611], 
+            12:[72.6000868058195,-38.4962265332872],
+            11:[72.5892267215905,-38.5022988244688], 
+            13:[72.6109470001738,-38.4901465440588], 
+            22:[72.598265271346,-38.4599355034766], 
+            23:[72.6091242603966,-38.4538331609837],
+            24:[72.6199833575357,-38.4477230792255]}
+
 StationCoordinate = stations[int(StationNumber)]
 coor = CoordinateSystem()
-locallocationstation = coor.geodetic_to_enu(StationCoordinate[0],StationCoordinate[1])
+locallocationstation = coor.geodetic_to_enu(StationCoordinate[0],
+                                            StationCoordinate[1])
 
 masked_segment = {key:[] for key in segment.keys()}
 masked_segment['elevation-up'] = segment['elevation-up']
@@ -98,11 +106,13 @@ Detectors[1] = np.array([Detectorx, Detectory, -60.]) * units.m
 #-------------------------------------------------------------------------------#
 #                           Get observed time difference                        #
 #-------------------------------------------------------------------------------#
+# NOTE: This doesn't work yet
 
-# idk yet how this will work
 AddCableDelay = channelAddCableDelay.channelAddCableDelay()
+
 #detector
-det = NuRadioReco.detector.detector.Detector(json_filename="/home/arthur/Documents/thesis/programs/analysis-tools/rnog_analysis_tools/detector_json/RNO_season_2022.json", antenna_by_depth=False)
+det = NuRadioReco.detector.detector.Detector(json_filename="/home/arthur/Documents/thesis/programs/analysis-tools/rnog_analysis_tools/detector_json/RNO_season_2022.json", 
+                                             antenna_by_depth=False)
 # data reader
 data_reader = NuRadioReco.modules.io.rno_g.readRNOGData.readRNOGData()
 data_reader.begin("/home/arthur/Documents/thesis/data/interesting/station23/run691/combined.root")
@@ -130,6 +140,8 @@ difference = corr.argmax()
 NumberOfDetectors = len(Detectors)
 delta_t = np.zeros((NumberOfDetectors,NumberOfDetectors))
 delta_t[0][1] = difference
+if difference > 150:
+    print("The time differences should be around 113 but the calculated differences is {}".format(difference))
 #-------------------------------------------------------------------------------#
 #                                   Fit n                                       #
 #-------------------------------------------------------------------------------#

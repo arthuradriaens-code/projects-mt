@@ -138,14 +138,13 @@ for detector in Detectors:
 
         plt.plot(x,z,color='orange')
         plt.plot(paths[-1][:,0],paths[-1][:,2],label="travel time = {0:.2f} nanoseconds".format(traveltime) ,color="orange")
-
 def delta_taccent(theta,deltaz,n):
     v = c/n
     return ((np.cos(theta)*deltaz)/v)*(10**9)
 
 differences = np.zeros(len(indexofrefractionrange))
 
-b_ballon = -95.5
+b_ballon = -70
 a_ballon = (Balloon[2]-b_ballon)/Balloon[0]
 
 for number,n in enumerate(indexofrefractionrange):
@@ -172,7 +171,7 @@ for number,n in enumerate(indexofrefractionrange):
     angle = thetas[angle_index] #zenith ofc
 
     a_planewave = np.tan(np.pi/2-angle)
-    b_planewave = -95.5
+    b_planewave = -70
 
     angle_snell = np.arcsin(np.sin(angle)*n_icesurface)
     a_snell = np.tan(np.pi/2-angle_snell)
@@ -220,18 +219,18 @@ for i in range(NumberOfDetectors):
 angle_index = np.where(summedcorrelation == summedcorrelation.min())
 angle = thetas[angle_index] #zenith ofc
 a_planewave = np.tan(np.pi/2-angle)
-b_planewave = -95.5
+b_planewave = -70
 
 angle_snell = np.arcsin(np.sin(angle)*n_icesurface)
 a_snell = np.tan(np.pi/2-angle_snell)
 b_snell = -1*a_snell*(-1*b_planewave/a_planewave)
 
-b_ballon = -95.5
+b_ballon = -70
 a_ballon = (Balloon[2]-b_ballon)/Balloon[0]
 x = np.linspace(0,Balloon[0],1000)
 plt.plot(x,a_ballon*x + b_ballon,color="blue")
 a_refracted = np.tan(np.pi/2-angle)
-b_refracted = -95.5
+b_refracted = -70
 
 y = a_refracted*x + b_refracted
 indexwhensurface = np.where(y > 0)[0][0]
