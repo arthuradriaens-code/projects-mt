@@ -15,11 +15,19 @@ import folium
 from dateutil.tz import tzutc
 import copy
 import csv
+import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
+
+station_id = 23
+channel_a_id = 5
+channel_b_id = 6
 
 #-------------------------------------------------------------------------------#
 #                               functions                                       #
 #-------------------------------------------------------------------------------#
 
+def Sine(t,A,T,offset):
+    return A*np.sin(0.403*2*np.pi*t + T) + offset
 def CalcAngleToGround(a):
     lena = np.sqrt(np.dot(a,a)) #normalize
     return np.arccos(np.dot(a,np.array([0,0,-1]))/lena)
@@ -51,19 +59,6 @@ for track in read_gpx_file(gpx_file):
     continue
 segment = track['segments'][0]
 
-stations = {21:[72.5874063909459,-38.4660301212611], 
-            12:[72.6000868058195,-38.4962265332872],
-            11:[72.5892267215905,-38.5022988244688], 
-            13:[72.6109470001738,-38.4901465440588], 
-            22:[72.598265271346,-38.4599355034766], 
-            23:[72.6091242603966,-38.4538331609837],
-            24:[72.6199833575357,-38.4477230792255]}
-
-StationCoordinate = stations[int(StationNumber)]
-coor = CoordinateSystem()
-locallocationstation = coor.geodetic_to_enu(StationCoordinate[0],
-                                            StationCoordinate[1])
-
 masked_segment = {key:[] for key in segment.keys()}
 masked_segment['elevation-up'] = segment['elevation-up']
 masked_segment['elevation-down'] = segment['elevation-down']
@@ -80,11 +75,39 @@ GivenTime = GivenTime.split('/')
 GivenTime = datetime.datetime(int(GivenTime[0]), int(GivenTime[1]), int(GivenTime[2]),int(GivenTime[3]),int(GivenTime[4]),int(GivenTime[5]),tzinfo=tzutc())
 print("looking at the event recorded at:")
 print(GivenTime)
+coor = CoordinateSystem()
 for t,Time in enumerate(segment['time']):
     if (Time - GivenTime).total_seconds() < 1: 
         BalloonPosition = coor.geodetic_to_enu(segment['lat'][t],segment['lon'][t],segment['elevation'][t])
 print("balloon position:")
 print(BalloonPosition)
+
+# data reader
+data_reader = NuRadioReco.modules.io.rno_g.readRNOGData.readRNOGData()
+data_reader.begin("/home/arthur/Documents/thesis/data/interesting/station23/run691/combined.root")
+
+
+# get event
+for event in data_reader.run():
+    if event.get_id()==489:
+        print("found you")
+        break
+
+# get detector information at the specified event time
+det = NuRadioReco.detector.detector.Detector(json_filename="/home/arthur/Documents/thesis/programs/analysis-tools/rnog_analysis_tools/detector_json/RNO_season_2022.json", 
+                                             antenna_by_depth=False)
+station = event.get_station(station_id)
+det.update(station.get_station_time())
+channel_a = station.get_channel(channel_a_id)
+channel_b = station.get_channel(channel_b_id)
+cable_delay_a = det.get_cable_delay(station_id,channel_a_id)
+cable_delay_b = det.get_cable_delay(station_id,channel_b_id)
+
+#detector
+AddCableDelay = channelAddCableDelay.channelAddCableDelay()
+# channels:
+locallocationstation = np.array(det.get_absolute_position(station_id))
+print(locallocationstation)
 
 # Ok now we have our balloon position and the detector position, 
 # We'll set the BalloonPosition relative to the detector:
@@ -96,58 +119,63 @@ r = np.sqrt(Balloon[0]**2 + Balloon[1]**2)
 Balloon[1] = 0
 Balloon[0] = r
 
-# channels:
-Detectorx = 0
-Detectory = 0
-Detectors = np.zeros((2,3))
-Detectors[0] = np.array([Detectorx, Detectory, -80.]) * units.m
-Detectors[1] = np.array([Detectorx, Detectory, -60.]) * units.m
 
 #-------------------------------------------------------------------------------#
 #                           Get observed time difference                        #
 #-------------------------------------------------------------------------------#
 # NOTE: This doesn't work yet
 
-AddCableDelay = channelAddCableDelay.channelAddCableDelay()
+Detectors = []
+print(det.get_relative_position(station_id,channel_a_id))
+Detectors.append(np.array(det.get_relative_position(station_id,channel_a_id)) * units.m)
+Detectors.append(np.array(det.get_relative_position(station_id,channel_b_id)) * units.m)
+print(det.get_relative_position(station_id,channel_b_id))
 
-#detector
-det = NuRadioReco.detector.detector.Detector(json_filename="/home/arthur/Documents/thesis/programs/analysis-tools/rnog_analysis_tools/detector_json/RNO_season_2022.json", 
-                                             antenna_by_depth=False)
-# data reader
-data_reader = NuRadioReco.modules.io.rno_g.readRNOGData.readRNOGData()
-data_reader.begin("/home/arthur/Documents/thesis/data/interesting/station23/run691/combined.root")
+# channel a fit
+channel_a_voltages = channel_a.get_trace()
+channel_a_spectrum = channel_a.get_frequency_spectrum()
+channel_a_frequencies = channel_a.get_frequencies()
+plt.axvline(x=0.403,linestyle='dashed')
+plt.plot(channel_a_frequencies,channel_a_spectrum)
+plt.show()
+channel_a_times = channel_a.get_times()
+plt.plot(channel_a_times,channel_a_voltages)
+fitted_a, cov_fitted_a = curve_fit(Sine, channel_a_times,channel_a_voltages)
+print(fitted_a)
+plt.plot(channel_a_times,Sine(channel_a_times,*fitted_a))
+plt.show()
 
-station_id = 23
-channel_a_id = 5
-channel_b_id = 6
+# channel b fit
+channel_b_spectrum = channel_b.get_frequency_spectrum()
+channel_b_frequencies = channel_b.get_frequencies()
+plt.axvline(x=0.403,linestyle='dashed')
+plt.plot(channel_b_frequencies,channel_b_spectrum)
+plt.show()
+channel_b_voltages = channel_b.get_trace()
+channel_b_times = channel_b.get_times()
+plt.plot(channel_b_times,channel_b_voltages)
+fitted_b, cov_fitted_b = curve_fit(Sine, channel_b_times,channel_b_voltages)
+plt.plot(channel_b_times,Sine(channel_b_times,*fitted_b))
+plt.show()
 
-# get event
-for event in data_reader.run():
-    if event.get_id()==489:
-        print("found you")
-        break
-
-# get time difference (needs to be improved)
-station = event.get_station(station_id)
-det.update(station.get_station_time())
-channel_a = station.get_channel(channel_a_id)
-cable_delay_a = det.get_cable_delay(station_id,channel_a_id)
-channel_b = station.get_channel(channel_b_id)
-cable_delay_b = det.get_cable_delay(station_id,channel_b_id)
-corr = radiotools.helper.get_normalized_xcorr(channel_a.get_trace(), channel_b.get_trace())
-difference = corr.argmax()
+difference = np.abs(fitted_b[1] - fitted_a[1] - cable_delay_a  + cable_delay_b)
+# time is, for some reason in hunderds of nanoseconds
+print(difference)
 
 NumberOfDetectors = len(Detectors)
 delta_t = np.zeros((NumberOfDetectors,NumberOfDetectors))
 delta_t[0][1] = difference
-if difference > 150:
-    print("The time differences should be around 113 but the calculated differences is {}".format(difference))
+deltaz = np.linalg.norm(Detectors[0]-Detectors[1])
+if difference < deltaz*0.3:
+    print("The signal appears to be moving faster than light...")
+if difference > deltaz*0.6:
+    print("The signal moves WAY to slow")
 #-------------------------------------------------------------------------------#
 #                                   Fit n                                       #
 #-------------------------------------------------------------------------------#
 differences = np.zeros(len(indexofrefractionrange))
 
-b_ballon = -70
+b_ballon = -67.704
 a_ballon = (Balloon[2]-b_ballon)/Balloon[0]
 
 for number,n in enumerate(indexofrefractionrange):
@@ -171,7 +199,7 @@ for number,n in enumerate(indexofrefractionrange):
     angle = thetas[angle_index] #zenith ofc
 
     a_planewave = np.tan(np.pi/2-angle)
-    b_planewave = -70
+    b_planewave = -67.704
 
     angle_snell = np.arcsin(np.sin(angle)*n_icesurface)
     a_snell = np.tan(np.pi/2-angle_snell)
