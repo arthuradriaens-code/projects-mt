@@ -26,7 +26,7 @@ def degrees(SomethingInRads):
 
 c = 299792458 #(m/s)
 ice = medium.greenland_simple()
-indexofrefractionrange = np.linspace(1.27,2.5,10000)
+indexofrefractionrange = np.linspace(1.4,2,10000)
 n_icesurface = ice.get_index_of_refraction(np.array([0,0,-0.00001]))
 
 configh = dict()
@@ -105,8 +105,8 @@ Detectorx = 0
 Detectory = 0
 #Detectors = np.zeros((4,3))
 Detectors = np.zeros((2,3))
-Detectors[0] = np.array([Detectorx, Detectory, -80.]) * units.m
-Detectors[1] = np.array([Detectorx, Detectory, -60.]) * units.m
+Detectors[0] = np.array([Detectorx, Detectory, -37.719]) * units.m
+Detectors[1] = np.array([Detectorx, Detectory, -57.709]) * units.m
 #Detectors[2] = np.array([Detectorx, Detectory, -95.]) * units.m
 #Detectors[3] = np.array([Detectorx, Detectory, -94.]) * units.m
 
@@ -144,7 +144,7 @@ def delta_taccent(theta,deltaz,n):
 
 differences = np.zeros(len(indexofrefractionrange))
 
-b_ballon = -70
+b_ballon = -47.7
 a_ballon = (Balloon[2]-b_ballon)/Balloon[0]
 
 for number,n in enumerate(indexofrefractionrange):
@@ -171,7 +171,7 @@ for number,n in enumerate(indexofrefractionrange):
     angle = thetas[angle_index] #zenith ofc
 
     a_planewave = np.tan(np.pi/2-angle)
-    b_planewave = -70
+    b_planewave = -47.7
 
     angle_snell = np.arcsin(np.sin(angle)*n_icesurface)
     a_snell = np.tan(np.pi/2-angle_snell)
@@ -190,7 +190,7 @@ if len(n_fit) > 1:
     n_fit = n_fit[0]
 print("index of refraction from fit: {}".format(n_fit))
 
-position = np.array([0,0,-70])
+position = np.array([0,0,-47.7])
 
 n_actual = ice.get_index_of_refraction(position)
 print("actual index of refraction from model: {}".format(n_actual))
@@ -219,18 +219,18 @@ for i in range(NumberOfDetectors):
 angle_index = np.where(summedcorrelation == summedcorrelation.min())
 angle = thetas[angle_index] #zenith ofc
 a_planewave = np.tan(np.pi/2-angle)
-b_planewave = -70
+b_planewave = -47.7
 
 angle_snell = np.arcsin(np.sin(angle)*n_icesurface)
 a_snell = np.tan(np.pi/2-angle_snell)
 b_snell = -1*a_snell*(-1*b_planewave/a_planewave)
 
-b_ballon = -70
+b_ballon = -47.7
 a_ballon = (Balloon[2]-b_ballon)/Balloon[0]
 x = np.linspace(0,Balloon[0],1000)
 plt.plot(x,a_ballon*x + b_ballon,color="blue")
 a_refracted = np.tan(np.pi/2-angle)
-b_refracted = -70
+b_refracted = -47.7
 
 y = a_refracted*x + b_refracted
 indexwhensurface = np.where(y > 0)[0][0]

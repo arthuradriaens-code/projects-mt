@@ -100,11 +100,10 @@ station = event.get_station(station_id)
 det.update(station.get_station_time())
 channel_a = station.get_channel(channel_a_id)
 channel_b = station.get_channel(channel_b_id)
+AddCableDelay = channelAddCableDelay.channelAddCableDelay()
 cable_delay_a = det.get_cable_delay(station_id,channel_a_id)
 cable_delay_b = det.get_cable_delay(station_id,channel_b_id)
 
-#detector
-AddCableDelay = channelAddCableDelay.channelAddCableDelay()
 # channels:
 locallocationstation = np.array(det.get_absolute_position(station_id))
 print(locallocationstation)
@@ -123,7 +122,7 @@ Balloon[0] = r
 #-------------------------------------------------------------------------------#
 #                           Get observed time difference                        #
 #-------------------------------------------------------------------------------#
-# NOTE: This doesn't work yet
+# NOTE: This doesn't seem to work yet
 
 Detectors = []
 print(det.get_relative_position(station_id,channel_a_id))
@@ -144,10 +143,13 @@ plt.title("Frequency spectrum of channel {}".format(channel_a_id))
 plt.plot(channel_a_frequencies,channel_a_spectrum)
 plt.show()
 channel_a_times = channel_a.get_times()
-plt.plot(channel_a_times,channel_a_voltages)
+plt.plot(channel_a_times,channel_a_voltages,label="measured data")
 fitted_a, cov_fitted_a = curve_fit(Sine, channel_a_times,channel_a_voltages)
-print(fitted_a)
-plt.plot(channel_a_times,Sine(channel_a_times,*fitted_a))
+plt.xlabel("time (nanoseconds)")
+plt.ylabel("Voltage")
+plt.title("Voltage i.f.o time for channel {}".format(channel_a_id))
+plt.plot(channel_a_times,Sine(channel_a_times,*fitted_a),label="fitted sine")
+plt.legend()
 plt.show()
 
 # channel b fit
@@ -161,9 +163,12 @@ plt.plot(channel_b_frequencies,channel_b_spectrum)
 plt.show()
 channel_b_voltages = channel_b.get_trace()
 channel_b_times = channel_b.get_times()
-plt.plot(channel_b_times,channel_b_voltages)
+plt.plot(channel_b_times,channel_b_voltages,label="measured data")
 fitted_b, cov_fitted_b = curve_fit(Sine, channel_b_times,channel_b_voltages)
-plt.plot(channel_b_times,Sine(channel_b_times,*fitted_b))
+plt.xlabel("time (nanoseconds)")
+plt.ylabel("Voltage")
+plt.title("Voltage i.f.o time for channel {}".format(channel_b_id))
+plt.plot(channel_b_times,Sine(channel_b_times,*fitted_b),label="fitted sine")
 plt.show()
 
 difference = np.abs(fitted_b[1] - fitted_a[1] - cable_delay_a  + cable_delay_b)
@@ -227,5 +232,3 @@ if len(n_fit) > 1:
     n_fit = n_fit[0]
 print("index of refraction from fit at a depth of {}m : {}".format(MiddleOfDetectors[2],n_fit))
 print("index of refraction from exponential model: {}".format(ice.get_index_of_refraction(MiddleOfDetectors)))
-
-
