@@ -19,15 +19,15 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
 station_id = 23
-channel_a_id = 5
-channel_b_id = 6
+channel_a_id = 6
+channel_b_id = 7
 
 #-------------------------------------------------------------------------------#
 #                               functions                                       #
 #-------------------------------------------------------------------------------#
 
 def Sine(t,A,T,offset):
-    return A*np.sin(0.403*2*np.pi*t + T) + offset
+    return A*np.sin(0.403*2*np.pi*t + T) 
 def CalcAngleToGround(a):
     lena = np.sqrt(np.dot(a,a)) #normalize
     return np.arccos(np.dot(a,np.array([0,0,-1]))/lena)
@@ -44,7 +44,7 @@ def delta_taccent(theta,deltaz,n):
 #-------------------------------------------------------------------------------#
 c = 299792458 #(m/s)
 ice = medium.greenland_simple()
-indexofrefractionrange = np.linspace(1.27,2.5,10000)
+indexofrefractionrange = np.linspace(1.4,2,50000)
 n_icesurface = ice.get_index_of_refraction(np.array([0,0,-0.00001]))
 
 #-------------------------------------------------------------------------------#
@@ -131,11 +131,16 @@ Detectors.append(np.array(det.get_relative_position(station_id,channel_a_id)) * 
 Detectors.append(np.array(det.get_relative_position(station_id,channel_b_id)) * units.m)
 print(det.get_relative_position(station_id,channel_b_id))
 
+MiddleOfDetectors = (Detectors[0] + Detectors[1])/2
+
 # channel a fit
 channel_a_voltages = channel_a.get_trace()
 channel_a_spectrum = channel_a.get_frequency_spectrum()
 channel_a_frequencies = channel_a.get_frequencies()
-plt.axvline(x=0.403,linestyle='dashed')
+plt.axvline(x=0.403,linestyle='dashed',color="grey")
+plt.xlabel("Frequency (GHz)")
+plt.ylabel("Counts")
+plt.title("Frequency spectrum of channel {}".format(channel_a_id))
 plt.plot(channel_a_frequencies,channel_a_spectrum)
 plt.show()
 channel_a_times = channel_a.get_times()
@@ -148,7 +153,10 @@ plt.show()
 # channel b fit
 channel_b_spectrum = channel_b.get_frequency_spectrum()
 channel_b_frequencies = channel_b.get_frequencies()
-plt.axvline(x=0.403,linestyle='dashed')
+plt.axvline(x=0.403,linestyle='dashed',color="grey")
+plt.xlabel("Frequency (GHz)")
+plt.ylabel("Counts")
+plt.title("Frequency spectrum of channel {}".format(channel_b_id))
 plt.plot(channel_b_frequencies,channel_b_spectrum)
 plt.show()
 channel_b_voltages = channel_b.get_trace()
@@ -175,7 +183,7 @@ if difference > deltaz*0.6:
 #-------------------------------------------------------------------------------#
 differences = np.zeros(len(indexofrefractionrange))
 
-b_ballon = -67.704
+b_ballon = MiddleOfDetectors[2]
 a_ballon = (Balloon[2]-b_ballon)/Balloon[0]
 
 for number,n in enumerate(indexofrefractionrange):
@@ -199,7 +207,7 @@ for number,n in enumerate(indexofrefractionrange):
     angle = thetas[angle_index] #zenith ofc
 
     a_planewave = np.tan(np.pi/2-angle)
-    b_planewave = -67.704
+    b_planewave = MiddleOfDetectors[2]
 
     angle_snell = np.arcsin(np.sin(angle)*n_icesurface)
     a_snell = np.tan(np.pi/2-angle_snell)
@@ -217,6 +225,7 @@ if len(n_fit) > 1:
     print("undetermined")
     print(n_fit)
     n_fit = n_fit[0]
-print("index of refraction from fit: {}".format(n_fit))
+print("index of refraction from fit at a depth of {}m : {}".format(MiddleOfDetectors[2],n_fit))
+print("index of refraction from exponential model: {}".format(ice.get_index_of_refraction(MiddleOfDetectors)))
 
 
