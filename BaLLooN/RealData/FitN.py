@@ -26,8 +26,8 @@ channel_b_id = 7
 #                               functions                                       #
 #-------------------------------------------------------------------------------#
 
-def Sine(t,A,T,offset):
-    return A*np.sin(0.403*2*np.pi*t + T) 
+def Sine(t,A,T,freq):
+    return A*np.sin(0.403125*units.ns*2*np.pi*t)*np.cos(freq*2*np.pi*t + T)
 def CalcAngleToGround(a):
     lena = np.sqrt(np.dot(a,a)) #normalize
     return np.arccos(np.dot(a,np.array([0,0,-1]))/lena)
@@ -38,7 +38,50 @@ def degrees(SomethingInRads):
 def delta_taccent(theta,deltaz,n):
     v = c/n
     return ((np.cos(theta)*deltaz)/v)*(10**9)
+def hl_envelopes_idx(s, dmin=1, dmax=1, split=False):
+    """
+    Input :
+    s: 1d-array, data signal from which to extract high and low envelopes
+    dmin, dmax: int, optional, size of chunks, use this if the size of the input signal is too big
+    split: bool, optional, if True, split the signal in half along its mean, might help to generate the envelope in some cases
+    Output :
+    lmin,lmax : high/low envelope idx of input signal s
+    """
 
+    # locals min      
+    lmin = (np.diff(np.sign(np.diff(s))) > 0).nonzero()[0] + 1 
+    # locals max
+    lmax = (np.diff(np.sign(np.diff(s))) < 0).nonzero()[0] + 1 
+    
+    if split:
+        # s_mid is zero if s centered around x-axis or more generally mean of signal
+        s_mid = np.mean(s) 
+        # pre-sorting of locals min based on relative position with respect to s_mid 
+        lmin = lmin[s[lmin]<s_mid]
+        # pre-sorting of local max based on relative position with respect to s_mid 
+        lmax = lmax[s[lmax]>s_mid]
+
+    # global min of dmin-chunks of locals min 
+    lmin = lmin[[i+np.argmin(s[lmin[i:i+dmin]]) for i in range(0,len(lmin),dmin)]]
+    # global max of dmax-chunks of locals max 
+    lmax = lmax[[i+np.argmax(s[lmax[i:i+dmax]]) for i in range(0,len(lmax),dmax)]]
+    
+    return lmin,lmax
+configh = dict()
+configh['propagation'] = dict(
+    attenuate_ice = True,
+    focusing_limit = 2,
+    focusing = False,
+    radiopropa = dict(
+        mode = 'hybrid minimizing',
+        iter_steps_channel = [45., 2., .5, .05,0.005], #unit is meter
+        iter_steps_zenith = [.7, .05, .005, .001,0.0001], #unit is degree
+        auto_step_size = False,
+        max_traj_length = 10000) #unit is meter
+)
+configh['speedup'] = dict(
+    delta_C_cut = 40 * units.degree
+)
 #-------------------------------------------------------------------------------#
 #                               constants                                       #
 #-------------------------------------------------------------------------------#
@@ -50,7 +93,7 @@ n_icesurface = ice.get_index_of_refraction(np.array([0,0,-0.00001]))
 #-------------------------------------------------------------------------------#
 #                               spatial data                                    #
 #-------------------------------------------------------------------------------#
-gpx_file = "/home/arthur/Documents/thesis/data/sonde/gpx/SMT_20220829_111459.gpx"
+gpx_file = "/mnt/usb/sonde/gpx/SMT_20220829_111459.gpx"
 StationNumber = 23
 GivenTime = "2022/08/29/11/18/32"
 i = 0
@@ -84,7 +127,7 @@ print(BalloonPosition)
 
 # data reader
 data_reader = NuRadioReco.modules.io.rno_g.readRNOGData.readRNOGData()
-data_reader.begin("/home/arthur/Documents/thesis/data/interesting/station23/run691/combined.root")
+data_reader.begin("/mnt/usb/RNO-G-DATA/station23/run691/combined.root")
 
 
 # get event
@@ -94,18 +137,19 @@ for event in data_reader.run():
         break
 
 # get detector information at the specified event time
-det = NuRadioReco.detector.detector.Detector(json_filename="/home/arthur/Documents/thesis/programs/analysis-tools/rnog_analysis_tools/detector_json/RNO_season_2022.json", 
+det = NuRadioReco.detector.detector.Detector(json_filename="/home/arthur/Universiteit/master-proef/analysis-tools/rnog_analysis_tools/detector_json/RNO_season_2022.json", 
                                              antenna_by_depth=False)
 station = event.get_station(station_id)
 det.update(station.get_station_time())
+passband = [0.40312499,0.40312501]
 channel_a = station.get_channel(channel_a_id)
 channel_b = station.get_channel(channel_b_id)
-AddCableDelay = channelAddCableDelay.channelAddCableDelay()
 cable_delay_a = det.get_cable_delay(station_id,channel_a_id)
 cable_delay_b = det.get_cable_delay(station_id,channel_b_id)
 
 # channels:
 locallocationstation = np.array(det.get_absolute_position(station_id))
+print("location of station:")
 print(locallocationstation)
 
 # Ok now we have our balloon position and the detector position, 
@@ -125,6 +169,7 @@ Balloon[0] = r
 # NOTE: This doesn't seem to work yet
 
 Detectors = []
+print("relative position of detectors:")
 print(det.get_relative_position(station_id,channel_a_id))
 Detectors.append(np.array(det.get_relative_position(station_id,channel_a_id)) * units.m)
 Detectors.append(np.array(det.get_relative_position(station_id,channel_b_id)) * units.m)
@@ -133,10 +178,10 @@ print(det.get_relative_position(station_id,channel_b_id))
 MiddleOfDetectors = (Detectors[0] + Detectors[1])/2
 
 # channel a fit
-channel_a_voltages = channel_a.get_trace()
+channel_a_voltages = channel_a.get_filtered_trace(passband, 'butter', 6)
 channel_a_spectrum = channel_a.get_frequency_spectrum()
 channel_a_frequencies = channel_a.get_frequencies()
-plt.axvline(x=0.403,linestyle='dashed',color="grey")
+plt.axvline(x=0.403125,linestyle='dashed',color="grey")
 plt.xlabel("Frequency (GHz)")
 plt.ylabel("Counts")
 plt.title("Frequency spectrum of channel {}".format(channel_a_id))
@@ -144,49 +189,94 @@ plt.plot(channel_a_frequencies,channel_a_spectrum)
 plt.show()
 channel_a_times = channel_a.get_times()
 plt.plot(channel_a_times,channel_a_voltages,label="measured data")
+lmin,lmax = hl_envelopes_idx(channel_a_voltages)
+plt.plot(channel_a_times[lmin],channel_a_voltages[lmin],label="low envelope")
+plt.plot(channel_a_times[lmax],channel_a_voltages[lmax],label="high envelope")
+A=np.max(channel_a_voltages)
 fitted_a, cov_fitted_a = curve_fit(Sine, channel_a_times,channel_a_voltages)
+print("freq: {}".format(fitted_a[-1]))
+TimeDiff_a = fitted_a[1]
 plt.xlabel("time (nanoseconds)")
 plt.ylabel("Voltage")
 plt.title("Voltage i.f.o time for channel {}".format(channel_a_id))
-plt.plot(channel_a_times,Sine(channel_a_times,*fitted_a),label="fitted sine")
+#plt.plot(channel_a_times,Sine(channel_a_times,*fitted_a),label="fitted sine",linestyle="dotted")
 plt.legend()
 plt.show()
 
 # channel b fit
 channel_b_spectrum = channel_b.get_frequency_spectrum()
 channel_b_frequencies = channel_b.get_frequencies()
-plt.axvline(x=0.403,linestyle='dashed',color="grey")
+plt.axvline(x=0.403125,linestyle='dashed',color="grey")
 plt.xlabel("Frequency (GHz)")
 plt.ylabel("Counts")
 plt.title("Frequency spectrum of channel {}".format(channel_b_id))
 plt.plot(channel_b_frequencies,channel_b_spectrum)
 plt.show()
-channel_b_voltages = channel_b.get_trace()
+channel_b_voltages = channel_b.get_filtered_trace(passband, 'butter', 6)
+A=np.max(channel_b_voltages)
 channel_b_times = channel_b.get_times()
 plt.plot(channel_b_times,channel_b_voltages,label="measured data")
+lmin,lmax = hl_envelopes_idx(channel_b_voltages)
+plt.plot(channel_b_times[lmin],channel_b_voltages[lmin],label="low envelope")
+plt.plot(channel_b_times[lmax],channel_b_voltages[lmax],label="high envelope")
 fitted_b, cov_fitted_b = curve_fit(Sine, channel_b_times,channel_b_voltages)
+TimeDiff_b = fitted_b[1] 
+
 plt.xlabel("time (nanoseconds)")
 plt.ylabel("Voltage")
 plt.title("Voltage i.f.o time for channel {}".format(channel_b_id))
-plt.plot(channel_b_times,Sine(channel_b_times,*fitted_b),label="fitted sine")
+#plt.plot(channel_b_times,Sine(channel_b_times,*fitted_b),label="fitted sine")
 plt.show()
 
-difference = np.abs(fitted_b[1] - fitted_a[1] - cable_delay_a  + cable_delay_b)
+difference = np.abs(TimeDiff_a - TimeDiff_b - cable_delay_a + cable_delay_b)
 # time is, for some reason in hunderds of nanoseconds
+print("time difference from measurements:")
 print(difference)
 
 NumberOfDetectors = len(Detectors)
 delta_t = np.zeros((NumberOfDetectors,NumberOfDetectors))
 delta_t[0][1] = difference
 deltaz = np.linalg.norm(Detectors[0]-Detectors[1])
-if difference < deltaz*0.3:
-    print("The signal appears to be moving faster than light...")
-if difference > deltaz*0.6:
-    print("The signal moves WAY to slow")
+#if difference > deltaz/0.3:
+#    print("The signal moves WAY to slow")
 #-------------------------------------------------------------------------------#
 #                                   Fit n                                       #
 #-------------------------------------------------------------------------------#
 differences = np.zeros(len(indexofrefractionrange))
+
+traveltimes = []
+paths = []
+times = []
+distances = []
+
+
+prop = radioproparaytracing.radiopropa_ray_tracing(ice, attenuation_model='GL1',config=configh)
+for detector in Detectors:
+    start_point = Balloon
+    print(start_point)
+    final_point = detector
+    print(final_point)
+    prop.set_start_and_end_point(start_point, final_point)
+    prop.find_solutions()
+    SolNumber = prop.get_number_of_solutions()
+    for Sol in range(SolNumber):
+        paths.append(prop.get_path(Sol))
+        times.append(prop.get_travel_time(Sol))
+        x = np.linspace(paths[-1][0,0],start_point[0],1000)
+        xlen = x[-1]-x[0]
+        z = np.linspace(paths[-1][0,2],start_point[2],1000)
+        zlen = z[-1]-z[0]
+        diagonallen = np.sqrt(xlen*xlen + zlen*zlen) #(m)
+        traveltime = times[-1]/units.ns + (diagonallen/c)*(10**9) #ns
+        traveltimes.append(traveltime)
+
+        plt.plot(x,z,color='orange',label="simulated ray path")
+        plt.plot(paths[-1][:,0],paths[-1][:,2],label="travel time = {0:.2f} nanoseconds".format(traveltime) ,color="orange")
+def delta_taccent(theta,deltaz,n):
+    v = c/n
+    return ((np.cos(theta)*deltaz)/v)*(10**9)
+print("expected difference:")
+print(np.abs(traveltimes[-1] - traveltimes[-2]))
 
 b_ballon = MiddleOfDetectors[2]
 a_ballon = (Balloon[2]-b_ballon)/Balloon[0]
@@ -221,6 +311,20 @@ for number,n in enumerate(indexofrefractionrange):
     verschil = XopBallonHoogte - Balloon[0]
 
     differences[number] = np.abs(verschil)
+x = np.linspace(0,Balloon[0],1000)
+a_refracted = np.tan(np.pi/2-angle)
+b_refracted = MiddleOfDetectors[2]
+y = a_refracted*x + b_refracted
+indexwhensurface = np.where(y > 0)[0][0]
+x = x[0:indexwhensurface]
+y = y[0:indexwhensurface]
+plt.plot(x,y,color="red",label="Plane Wave Reconstructed Path")
+x_snell = np.linspace(x[-1],Balloon[0])
+y = a_snell*x_snell + b_snell
+plt.legend()
+plt.plot(x_snell,y,color="red")
+
+plt.show()
 
 print("minimal difference between timing:")
 print(differences.min())

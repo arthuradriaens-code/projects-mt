@@ -39,21 +39,6 @@ def delta_taccent(theta,deltaz,n):
     v = c/n
     return ((np.cos(theta)*deltaz)/v)*(10**9)
 
-configh = dict()
-configh['propagation'] = dict(
-    attenuate_ice = True,
-    focusing_limit = 2,
-    focusing = False,
-    radiopropa = dict(
-        mode = 'hybrid minimizing',
-        iter_steps_channel = [45., 2., .5, .05,0.005], #unit is meter
-        iter_steps_zenith = [.7, .05, .005, .001,0.0001], #unit is degree
-        auto_step_size = False,
-        max_traj_length = 10000) #unit is meter
-)
-configh['speedup'] = dict(
-    delta_C_cut = 40 * units.degree
-)
 #-------------------------------------------------------------------------------#
 #                               constants                                       #
 #-------------------------------------------------------------------------------#
@@ -65,7 +50,7 @@ n_icesurface = ice.get_index_of_refraction(np.array([0,0,-0.00001]))
 #-------------------------------------------------------------------------------#
 #                               spatial data                                    #
 #-------------------------------------------------------------------------------#
-gpx_file = "/mnt/usb/sonde/gpx/SMT_20220829_111459.gpx"
+gpx_file = "/home/arthur/Documents/thesis/data/sonde/gpx/SMT_20220829_111459.gpx"
 StationNumber = 23
 GivenTime = "2022/08/29/11/18/32"
 i = 0
@@ -99,7 +84,7 @@ print(BalloonPosition)
 
 # data reader
 data_reader = NuRadioReco.modules.io.rno_g.readRNOGData.readRNOGData()
-data_reader.begin("/mnt/usb/RNO-G-DATA/station23/run691/combined.root")
+data_reader.begin("/home/arthur/Documents/thesis/data/interesting/station23/run691/combined.root")
 
 
 # get event
@@ -109,7 +94,7 @@ for event in data_reader.run():
         break
 
 # get detector information at the specified event time
-det = NuRadioReco.detector.detector.Detector(json_filename="/home/arthur/Universiteit/master-proef/analysis-tools/rnog_analysis_tools/detector_json/RNO_season_2022.json", 
+det = NuRadioReco.detector.detector.Detector(json_filename="/home/arthur/Documents/thesis/programs/analysis-tools/rnog_analysis_tools/detector_json/RNO_season_2022.json", 
                                              antenna_by_depth=False)
 station = event.get_station(station_id)
 det.update(station.get_station_time())
@@ -202,39 +187,6 @@ if difference > deltaz*0.6:
 #                                   Fit n                                       #
 #-------------------------------------------------------------------------------#
 differences = np.zeros(len(indexofrefractionrange))
-
-traveltimes = []
-paths = []
-times = []
-distances = []
-
-
-prop = radioproparaytracing.radiopropa_ray_tracing(ice, attenuation_model='GL1',config=configh)
-for detector in Detectors:
-    start_point = Balloon
-    print(start_point)
-    final_point = detector
-    print(final_point)
-    prop.set_start_and_end_point(start_point, final_point)
-    prop.find_solutions()
-    SolNumber = prop.get_number_of_solutions()
-    for Sol in range(SolNumber):
-        paths.append(prop.get_path(Sol))
-        times.append(prop.get_travel_time(Sol))
-        x = np.linspace(paths[-1][0,0],start_point[0],1000)
-        xlen = x[-1]-x[0]
-        z = np.linspace(paths[-1][0,2],start_point[2],1000)
-        zlen = z[-1]-z[0]
-        diagonallen = np.sqrt(xlen*xlen + zlen*zlen) #(m)
-        traveltime = times[-1]/units.ns + (diagonallen/c)*(10**9) #ns
-        traveltimes.append(traveltime)
-
-        plt.plot(x,z,color='orange')
-        plt.plot(paths[-1][:,0],paths[-1][:,2],label="travel time = {0:.2f} nanoseconds".format(traveltime) ,color="orange")
-def delta_taccent(theta,deltaz,n):
-    v = c/n
-    return ((np.cos(theta)*deltaz)/v)*(10**9)
-plt.show()
 
 b_ballon = MiddleOfDetectors[2]
 a_ballon = (Balloon[2]-b_ballon)/Balloon[0]
