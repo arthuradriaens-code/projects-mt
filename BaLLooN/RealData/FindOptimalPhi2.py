@@ -8,7 +8,6 @@ from NuRadioReco.modules import channelAddCableDelay
 from gpxplotter import read_gpx_file, create_folium_map, add_segment_to_map
 from NuRadioMC.utilities import medium
 from NuRadioMC.SignalProp import radioproparaytracing
-import matplotlib.pyplot as plt
 import os
 from coordinate_system import CoordinateSystem
 import datetime
@@ -16,36 +15,18 @@ import folium
 from dateutil.tz import tzutc
 import copy
 import csv
-import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from scipy.signal import find_peaks
+from termcolor import colored
 
 station_id = 23
-event_id = 1904
-channel_ids = [0,1]
+event_id = 1867
+channel_ids = [1,2]
 traveltimes = np.zeros(len(channel_ids))
-gpx_file = "/mnt/usb/sonde/gpx/SMT_20220907_112500.gpx"
-GivenTime = "2022/09/07/11/29/09"
-rootfile = "/mnt/usb/RNO-G-DATA/station23/run800/combined.root"
-#phi2s = [-786.91,-894.548,-895,-782]
-phi2s = [-1000,-1005]
-#phi2s = [-727.8,-658]
-#phi2s = [-786.91,-782]
-
-#-------------------------------------------------------------------------------#
-#                               Colors                                          #
-#-------------------------------------------------------------------------------#
-
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+gpx_file = "/mnt/usb/sonde/gpx/SMT_20220907_231621.gpx"
+GivenTime = "2022/09/07/23/22/14"
+rootfile = "/mnt/usb/RNO-G-DATA/station24/run646/combined.root"
+phi2 = -1588
 
 #-------------------------------------------------------------------------------#
 #                               functions                                       #
@@ -112,7 +93,7 @@ configh['speedup'] = dict(
 #-------------------------------------------------------------------------------#
 c = 299792458 #(m/s)
 ice = medium.greenland_simple()
-indexofrefractionrange = np.linspace(1.3,1.8,50000)
+indexofrefractionrange = np.linspace(1.5,1.8,50000)
 n_icesurface = ice.get_index_of_refraction(np.array([0,0,-0.00001]))
 
 #-------------------------------------------------------------------------------#
@@ -181,84 +162,97 @@ Balloon[0] = r
 #                           Get observed time difference                        #
 #-------------------------------------------------------------------------------#
 # NOTE: This doesn't seem to work yet
+phi2s = np.linspace(-1600,-1580,100)
+phi2smintimes = np.zeros(len(phi2s))
+for s,phi2 in enumerate(phi2s):
+    Detectors = []
+    for i,channel_id in enumerate(channel_ids):
+        channel = station.get_channel(channel_id)
+        cable_delay = det.get_cable_delay(station_id,channel_id)
+        Detectors.append(np.array(det.get_relative_position(station_id,channel_id)) * units.m)
+        channel_voltages = channel.get_filtered_trace(passband, 'butter', 6) 
+        channel_spectrum = channel.get_frequency_spectrum()
+        channel_frequencies = channel.get_frequencies()
+        channel_times = channel.get_times()
+        lmin,lmax = hl_envelopes_idx(channel_voltages)
+        E_1=np.max(channel_voltages[lmax])
+        E_2=np.abs(np.max(channel_voltages[lmin]))
+        m = (E_1/E_2 - 1)/(E_1/E_2 + 1)
+        A = E_1/(1+m)
+        listofmaxes,_ = find_peaks(channel_voltages[lmax])
+        fm = 1/((channel_times[lmax][listofmaxes[1]] - channel_times[lmax][listofmaxes[0]]))
+        frel=1
+        phi1 = 0
+        fitted, cov_fitted = curve_fit(AM,channel_times,channel_voltages,p0=(A,m,frel,phi1,fm,phi2))
+        phase_2 = fitted[-1]
+        phi2 = phase_2
+        print("used phi2: {}".format(phi2))
+        T2 = np.abs(phase_2/(2*np.pi*fitted[-2]))
+        phase_1 = fitted[-3]
+        T1 = phase_1/(2*np.pi*0.403125)
+        traveltimes[i] = np.abs(T2 - cable_delay)
 
+    MiddleOfDetectors = np.array([0,0,0])
+    for Detector in Detectors:
+        MiddleOfDetectors = MiddleOfDetectors + Detector/float(len(Detectors))
 
-Detectors = []
-#approxtimes = np.array([9774,9779,9785,9790])
-#omegas = np.array([0.16,0.152,0.151,0.162])
-#delays = np.array([700.65,705,710.3,714.96])
-#phis = (approxtimes - delays)*omegas
-#phis = np.zeros(len(channel_ids))
-#phis[0] = -611.02040816
-#phis[1] = -615.30612245
-#phis[3] = 1471
-#print(phis)
-
-for i,channel_id in enumerate(channel_ids):
-    channel = station.get_channel(channel_id)
-    cable_delay = det.get_cable_delay(station_id,channel_id)
-    Detectors.append(np.array(det.get_relative_position(station_id,channel_id)) * units.m)
-    channel_voltages = channel.get_filtered_trace(passband, 'butter', 6) 
-    channel_spectrum = channel.get_frequency_spectrum()
-    channel_frequencies = channel.get_frequencies()
-    plt.axvline(x=0.403125,linestyle='dashed',color="grey")
-    plt.xlabel("Frequency (GHz)")
-    plt.ylabel("Counts")
-    plt.title("Frequency spectrum of channel {}".format(channel_id))
-    plt.plot(channel_frequencies,channel_spectrum)
-    plt.show()
-    channel_times = channel.get_times()
-    plt.plot(channel_times,channel_voltages,label="measured data")
-    lmin,lmax = hl_envelopes_idx(channel_voltages)
-    plt.plot(channel_times[lmin],channel_voltages[lmin],label="low envelope")
-    plt.plot(channel_times[lmax],channel_voltages[lmax],label="high envelope")
-    E_1=np.max(channel_voltages[lmax])
-    E_2=np.abs(np.max(channel_voltages[lmin]))
-    m = (E_1/E_2 - 1)/(E_1/E_2 + 1)
-    A = E_1/(1+m)
-    listofmaxes,_ = find_peaks(channel_voltages[lmax])
-    fm = 1/((channel_times[lmax][listofmaxes[1]] - channel_times[lmax][listofmaxes[0]]))
-    frel=1
-    phi1 = 0
-    phi2 = phi2s[i]
-    fitted, cov_fitted = curve_fit(AM,channel_times,channel_voltages,p0=(A,m,frel,phi1,fm,phi2))
-    phase_2 = fitted[-1]
-    print("phi2 used: {}".format(phase_2))
-    T2 = np.abs(phase_2/(2*np.pi*fitted[-2]))
-    phase_1 = fitted[-3]
-    T1 = phase_1/(2*np.pi*0.403125)
-    traveltimes[i] = np.abs(T2 - cable_delay)
-    plt.xlabel("time (nanoseconds)")
-    plt.ylabel("Voltage")
-    plt.title("Voltage i.f.o time for channel {}".format(channel_id))
-    plt.plot(channel_times,AM(channel_times,*fitted),label="fitted sine",linestyle="dotted")
-    plt.legend()
-    plt.show()
-
-print("detector locations: {}".format(Detectors))
-print("Balloon location: {}".format(Balloon))
-print("traveltimes: {}".format(traveltimes))
-MiddleOfDetectors = np.array([0,0,0])
-for Detector in Detectors:
-    MiddleOfDetectors = MiddleOfDetectors + Detector/float(len(Detectors))
-
-NumberOfDetectors = len(Detectors)
-delta_t = np.zeros((NumberOfDetectors,NumberOfDetectors))
+    NumberOfDetectors = len(Detectors)
+    delta_t = np.zeros((NumberOfDetectors,NumberOfDetectors))
 
 #-------------------------------------------------------------------------------#
 #                                   Fit n                                       #
 #-------------------------------------------------------------------------------#
-differences = np.zeros(len(indexofrefractionrange))
+    differences = np.zeros(len(indexofrefractionrange))
 
-paths = []
-times = []
-distances = []
+    paths = []
+    times = []
+    distances = []
 
 
-b_ballon = MiddleOfDetectors[2]
-a_ballon = (Balloon[2]-b_ballon)/Balloon[0]
+    b_ballon = MiddleOfDetectors[2]
+    a_ballon = (Balloon[2]-b_ballon)/Balloon[0]
 
-for number,n in enumerate(indexofrefractionrange):
+    for number,n in enumerate(indexofrefractionrange):
+        thetas = np.linspace(0,0.9,1000)
+        delta_taccenten = np.zeros((NumberOfDetectors,NumberOfDetectors,1000))
+        correlation = np.zeros((NumberOfDetectors,NumberOfDetectors,1000))
+        normedcorrelation = np.zeros((NumberOfDetectors,NumberOfDetectors,1000))
+        summedcorrelation = np.zeros(1000)
+
+        for i in range(NumberOfDetectors):
+            for j in range(NumberOfDetectors):
+                if i < j:
+                    delta_t[i][j] = np.abs(traveltimes[i] - traveltimes[j])
+                    deltaz = np.linalg.norm(Detectors[i]-Detectors[j])
+                    delta_taccenten[i][j] = delta_taccent(thetas,np.abs(deltaz),n)
+                    correlation[i][j] = np.abs(delta_t[i][j] - delta_taccenten[i][j])
+                    normedcorrelation[i][j] = correlation[i][j]/np.trapz(correlation[i][j],thetas)
+
+                    summedcorrelation += normedcorrelation[i][j]
+
+
+        angle_index = np.where(summedcorrelation == summedcorrelation.min())
+        angle = thetas[angle_index] #zenith ofc
+
+        a_planewave = np.tan(np.pi/2-angle)
+        b_planewave = MiddleOfDetectors[2]
+        angle_snell = np.arcsin(np.sin(angle)*n_icesurface)
+        a_snell = np.tan(np.pi/2 - angle_snell)
+        b_snell = -1*a_snell*(-1*b_planewave/a_planewave)
+        XopBallonHoogte = (Balloon[2] - b_snell)/a_snell
+        verschil = XopBallonHoogte - Balloon[0]
+
+        differences[number] = np.abs(verschil)
+
+#plot for the n that was found:
+    n_index = np.where(differences == differences.min())
+    n = indexofrefractionrange[n_index[0]]
+    if len(n) > 1:
+        print("undetermined")
+        print(n)
+        n = n[0]
+    print(n)
+
     thetas = np.linspace(0,0.9,1000)
     delta_taccenten = np.zeros((NumberOfDetectors,NumberOfDetectors,1000))
     correlation = np.zeros((NumberOfDetectors,NumberOfDetectors,1000))
@@ -276,75 +270,37 @@ for number,n in enumerate(indexofrefractionrange):
 
                 summedcorrelation += normedcorrelation[i][j]
 
-
     angle_index = np.where(summedcorrelation == summedcorrelation.min())
     angle = thetas[angle_index] #zenith ofc
-
-    a_planewave = np.tan(np.pi/2-angle)
-    b_planewave = MiddleOfDetectors[2]
     angle_snell = np.arcsin(np.sin(angle)*n_icesurface)
-    a_snell = np.tan(np.pi/2 - angle_snell)
-    b_snell = -1*a_snell*(-1*b_planewave/a_planewave)
-    XopBallonHoogte = (Balloon[2] - b_snell)/a_snell
-    verschil = XopBallonHoogte - Balloon[0]
 
-    differences[number] = np.abs(verschil)
+    x = np.linspace(0,Balloon[0],1000)
+    a_refracted = np.tan(np.pi/2-angle)
+    b_refracted = MiddleOfDetectors[2]
+    a_snell = np.tan(np.pi/2-angle_snell)
+    b_snell = -1*a_snell*(-1*b_refracted/a_refracted)
 
-#plot for the n that was found:
-n_index = np.where(differences == differences.min())
-n = indexofrefractionrange[n_index[0]]
-if len(n) > 1:
-    print("undetermined")
-    print(n)
-    n = n[0]
-print(n)
+    y = a_refracted*x + b_refracted
+    indexwhensurface = np.where(y > 0)[0][0]
+    x = x[0:indexwhensurface]
+    y = y[0:indexwhensurface]
+    x_snell = np.linspace(x[-1],Balloon[0])
+    y = a_snell*x_snell + b_snell
 
-thetas = np.linspace(0,0.9,1000)
-delta_taccenten = np.zeros((NumberOfDetectors,NumberOfDetectors,1000))
-correlation = np.zeros((NumberOfDetectors,NumberOfDetectors,1000))
-normedcorrelation = np.zeros((NumberOfDetectors,NumberOfDetectors,1000))
-summedcorrelation = np.zeros(1000)
 
-for i in range(NumberOfDetectors):
-    for j in range(NumberOfDetectors):
-        if i < j:
-            delta_t[i][j] = np.abs(traveltimes[i] - traveltimes[j])
-            deltaz = np.linalg.norm(Detectors[i]-Detectors[j])
-            delta_taccenten[i][j] = delta_taccent(thetas,np.abs(deltaz),n)
-            correlation[i][j] = np.abs(delta_t[i][j] - delta_taccenten[i][j])
-            normedcorrelation[i][j] = correlation[i][j]/np.trapz(correlation[i][j],thetas)
-            plt.plot(thetas,normedcorrelation[i][j])
-            plt.show()
+    print("minimal difference between timing:")
+    minimaldiff = differences.min()
+    if minimaldiff > 1:
+        print(minimaldiff)
+    else:
+        print(colored(minimaldiff, 'red'))
+    
+    phi2smintimes[s] = differences.min()
 
-            summedcorrelation += normedcorrelation[i][j]
+phi_index = np.where(phi2smintimes == phi2smintimes.min())
+print("final result:")
+print(phi2s[phi_index])
 
-angle_index = np.where(summedcorrelation == summedcorrelation.min())
-angle = thetas[angle_index] #zenith ofc
-angle_snell = np.arcsin(np.sin(angle)*n_icesurface)
-
-x = np.linspace(0,Balloon[0],1000)
-a_refracted = np.tan(np.pi/2-angle)
-b_refracted = MiddleOfDetectors[2]
-a_snell = np.tan(np.pi/2-angle_snell)
-b_snell = -1*a_snell*(-1*b_refracted/a_refracted)
-
-y = a_refracted*x + b_refracted
-indexwhensurface = np.where(y > 0)[0][0]
-x = x[0:indexwhensurface]
-y = y[0:indexwhensurface]
-plt.plot(x,y,color="red",label="Plane Wave Reconstructed Path")
-x_snell = np.linspace(x[-1],Balloon[0])
-y = a_snell*x_snell + b_snell
-plt.legend()
-plt.plot(x_snell,y,color="red")
-
-plt.show()
-
-print("minimal difference between timing:")
-print(differences.min())
-if differences.min() > 1:
-    print(f"{bcolors.FAIL}THIS FIT IS NOT USABLE{bcolors.ENDC}")
-    sys.exit(1)
 n_index = np.where(differences == differences.min())
 n_fit = indexofrefractionrange[n_index]
 if len(n_fit) > 1:
@@ -353,4 +309,3 @@ if len(n_fit) > 1:
     n_fit = n_fit[0]
 print("index of refraction from fit at a depth of {}m : {}".format(MiddleOfDetectors[2],n_fit))
 print("index of refraction from exponential model: {}".format(ice.get_index_of_refraction(MiddleOfDetectors)))
-sys.exit(0)

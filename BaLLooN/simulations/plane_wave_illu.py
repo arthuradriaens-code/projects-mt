@@ -103,7 +103,6 @@ for i in range(NumberOfDetectors):
         if i < j:
             delta_t[i][j] = traveltimes[i] - traveltimes[j]
             deltaz = np.linalg.norm(Detectors[i]-Detectors[j])
-            #position = Detectors[i] + np.array([0,0,deltaz/2])
             position = np.array([0,0,-95.5])
             delta_taccenten[i][j] = delta_taccent(thetas,np.abs(deltaz),position)
             correlation[i][j] = np.abs(delta_t[i][j] - delta_taccenten[i][j])
