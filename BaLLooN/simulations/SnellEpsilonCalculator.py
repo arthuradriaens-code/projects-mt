@@ -22,8 +22,8 @@ def degrees(SomethingInRads):
 
 # Let us work on the y = 0 plane
 Detectors = np.zeros((2,3))
-Detectors[0] = np.array([0.,0.,-37.719]) * units.m
-Detectors[1] = np.array([-16.93872529,17.04793843,-0.5]) * units.m
+Detectors[0] = np.array([0,0,-95]) * units.m
+Detectors[1] = np.array([0.,0.,-96]) * units.m
 #Detectors[2] = np.array([0., 0., -95.631]) * units.m
 #Detectors[3] = np.array([0., 0., -94.615]) * units.m
 
@@ -47,7 +47,7 @@ configh['speedup'] = dict(
     delta_C_cut = 40 * units.degree
 )
 
-xcoordinates = [267.31235605]
+xcoordinates = [96]
 indexofrefractionrange = np.linspace(1.6,1.9,5000)
 RelativeAccuracy = np.zeros(len(xcoordinates))
 BalloonAngle = np.zeros(len(xcoordinates))
@@ -58,7 +58,7 @@ with alive_bar(len(xcoordinates),title='Calculating relative angles',length=20,b
         paths = []
         times = []
         distances = []
-        Balloon = np.array([xcoordinate,0.,1170.06532477])*units.m
+        Balloon = np.array([xcoordinate,0.,1000])*units.m
         prop = radioproparaytracing.radiopropa_ray_tracing(ice, attenuation_model='GL1',config=configh)
         for detector in Detectors:
             start_point = Balloon

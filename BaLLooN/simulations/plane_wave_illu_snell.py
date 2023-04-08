@@ -20,14 +20,16 @@ logger = logging.getLogger('ray_tracing_modules')
 
 # Let us work on the y = 0 plane
 #Detectors = np.zeros((4,3))
-Detectors = np.zeros((2,3))
-Detectors[0] = np.array([0., 0.,-94.717]) * units.m
-Detectors[1] = np.array([0., 0.,-91.745]) * units.m
+Detectors = np.zeros((4,3))
+Detectors[0] = np.array([0., 0.,-95]) * units.m
+Detectors[1] = np.array([0., 0.,-94]) * units.m
+Detectors[2] = np.array([0., 0.,-93]) * units.m
+Detectors[3] = np.array([0., 0.,-92]) * units.m
 #Detectors[2] = np.array([0., 0., -93.751]) * units.m
 #Detectors[3] = np.array([0., 0., -94.717]) * units.m
 #plt.plot([0,0,0,0], [-97,-96,-95,-94], 'bo')
 
-Balloon = np.array([452.27008827,0.,1427.22957841])*units.m
+Balloon = np.array([62.75093998,0.,809.64508157])*units.m
 
 
 traveltimes = []
