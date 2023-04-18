@@ -20,14 +20,18 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from scipy.signal import find_peaks
 
-station_id = 23
-event_id = 1867
-channel_ids = [0,1,2,3]
-n_channels = len(channel_ids)
-prefix="/home/arthur/Documents/thesis/data"
-gpx_file = prefix+"/sonde/gpx/SMT_20220907_112500.gpx"
-GivenTime = "2022/09/07/11/28/10"
-rootfile = prefix+"/interesting/station23/run800/combined.root"
+station_id = 21
+event_id = 117
+channel_ids = [1,2]
+traveltimes = np.zeros(len(channel_ids))
+gpx_file = "/mnt/usb/sonde/gpx/SMT_20220726_111605.gpx"
+GivenTime = "2022/07/26/11/18/40"
+rootfile = "/mnt/usb/RNO-G-DATA/station21/run1441/combined.root"
+#phi2s = [-786.91,-894.548,-895,-782]
+phi2s = [-636.55,-630.964]
+#phi2s = [-3920.707,-3918.697]
+#phi2s = [-727.8,-658]
+#phi2s = [-786.91,-782]
 
 #-------------------------------------------------------------------------------#
 #                               Colors                                          #
@@ -48,10 +52,8 @@ class bcolors:
 #                               functions                                       #
 #-------------------------------------------------------------------------------#
 
-def S(t,sampling_rate,amplitude):
-    A = amplitude
-    f = 0.403
-    return A*np.sin(2*np.pi*f*t)
+def AM(t,A,m,frel,phi1,fm,phi2):
+    return A*np.sin(0.403125*frel*units.ns*2*np.pi*t + phi1)*(m*np.cos(fm*2*np.pi*t + phi2) + 1)
 def CalcAngleToGround(a):
     lena = np.sqrt(np.dot(a,a)) #normalize
     return np.arccos(np.dot(a,np.array([0,0,-1]))/lena)
@@ -111,7 +113,7 @@ configh['speedup'] = dict(
 #-------------------------------------------------------------------------------#
 c = 299792458 #(m/s)
 ice = medium.greenland_simple()
-indexofrefractionrange = np.linspace(1.3,1.9,50000)
+indexofrefractionrange = np.linspace(1.3,1.8,50000)
 n_icesurface = ice.get_index_of_refraction(np.array([0,0,-0.00001]))
 
 #-------------------------------------------------------------------------------#
@@ -156,11 +158,11 @@ for event in data_reader.run():
         break
 
 # get detector information at the specified event time
-det = NuRadioReco.detector.detector.Detector(json_filename="/home/arthur/Documents/thesis/programs/analysis-tools/rnog_analysis_tools/detector_json/RNO_season_2022.json", 
+det = NuRadioReco.detector.detector.Detector(json_filename="/home/arthur/Universiteit/master-proef/analysis-tools/rnog_analysis_tools/detector_json/RNO_season_2022.json", 
                                              antenna_by_depth=False)
 station = event.get_station(station_id)
 det.update(station.get_station_time())
-passband = np.array([0.15,0.60])*units.GHz
+passband = [0.40312499,0.40312501]
 
 
 locallocationstation = np.array(det.get_absolute_position(station_id))
@@ -177,25 +179,30 @@ Balloon[0] = r
 
 
 #-------------------------------------------------------------------------------#
-#                           Get correlation with sine                           #
+#                           Get observed time difference                        #
 #-------------------------------------------------------------------------------#
+# NOTE: This doesn't seem to work yet
+
 
 Detectors = []
-corrs = []
-cable_delays = np.zeros(n_channels)
+#approxtimes = np.array([9774,9779,9785,9790])
+#omegas = np.array([0.16,0.152,0.151,0.162])
+#delays = np.array([700.65,705,710.3,714.96])
+#phis = (approxtimes - delays)*omegas
+#phis = np.zeros(len(channel_ids))
+#phis[0] = -611.02040816
+#phis[1] = -615.30612245
+#phis[3] = 1471
+#print(phis)
 
 for i,channel_id in enumerate(channel_ids):
     channel = station.get_channel(channel_id)
-    target_sampling_rate = 10.0*units.GHz
-    channel.resample(target_sampling_rate)
-    channel = station.get_channel(channel_id)
-    cable_delays[i] = det.get_cable_delay(station_id,channel_id)
+    cable_delay = det.get_cable_delay(station_id,channel_id)
     Detectors.append(np.array(det.get_relative_position(station_id,channel_id)) * units.m)
     channel_voltages = channel.get_filtered_trace(passband, 'butter', 6) 
-    channel_sample_rate = channel.get_sampling_rate()/units.GHz
     channel_spectrum = channel.get_frequency_spectrum()
     channel_frequencies = channel.get_frequencies()
-    plt.axvline(x=0.403,linestyle='dashed',color="grey")
+    plt.axvline(x=0.403125,linestyle='dashed',color="grey")
     plt.xlabel("Frequency (GHz)")
     plt.ylabel("Counts")
     plt.title("Frequency spectrum of channel {}".format(channel_id))
@@ -204,124 +211,50 @@ for i,channel_id in enumerate(channel_ids):
     channel_times = channel.get_times()
     plt.plot(channel_times,channel_voltages,label="measured data")
     lmin,lmax = hl_envelopes_idx(channel_voltages)
+    plt.plot(channel_times[lmin],channel_voltages[lmin],label="low envelope")
+    plt.plot(channel_times[lmax],channel_voltages[lmax],label="high envelope")
+    E_1=np.max(channel_voltages[lmax])
+    E_2=np.abs(np.max(channel_voltages[lmin]))
+    m = (E_1/E_2 - 1)/(E_1/E_2 + 1)
+    A = E_1/(1+m)
+    listofmaxes,_ = find_peaks(channel_voltages[lmax])
+    fm = 1/((channel_times[lmax][listofmaxes[1]] - channel_times[lmax][listofmaxes[0]]))
+    frel=1
+    phi1 = 0
+    phi2 = phi2s[i]
+    fitted, cov_fitted = curve_fit(AM,channel_times,channel_voltages,p0=(A,m,frel,phi1,fm,phi2))
+    phase_2 = fitted[-1]
+    T2 = np.abs(phase_2/(2*np.pi*fitted[-2]))
+    traveltimes[i] = np.abs(T2 - cable_delay)
     print("\n")
     print("-----------------------------")
     print("Channel {}".format(channel_id))
     print("-----------------------------")
-    print("cable delay: {}".format(cable_delays[i]))
-    print("-----------------------------")
-    print("Channel sample rate: {}".format(channel_sample_rate))
+    print("phi2 used: {}".format(phase_2))
+    print("omega used: {}".format(2*np.pi*fitted[-2]))
+    print("cable delay: {}".format(cable_delay))
+    print("T2: {}".format(T2))
+    print("traveltime: {}".format(traveltimes[i]))
     print("-----------------------------")
     print("\n")
+    phase_1 = fitted[-3]
+    T1 = phase_1/(2*np.pi*0.403125)
     plt.xlabel("time (nanoseconds)")
     plt.ylabel("Voltage")
     plt.title("Voltage i.f.o time for channel {}".format(channel_id))
+    plt.plot(channel_times,AM(channel_times,*fitted),label="fitted sine",linestyle="dotted")
     plt.legend()
     plt.show()
-    t = np.arange(0,3/(0.403*units.GHz),1/channel_sample_rate)
-    amplitude = 0.007
-    template = S(t,channel_sample_rate,amplitude)
-    #get correlation sine and signal
-    corr = radiotools.helper.get_normalized_xcorr(
-        channel_voltages,
-        template
-    )
-    corrs.append(corr)
-    times = np.linspace(0,len(corr)*(1/channel_sample_rate),len(corr))
-    plt.plot(times,corr)
-    plt.xlabel("time (nanoseconds)")
-    plt.ylabel("correlation")
-    plt.title("correlation i.f.o delta time for channel {}".format(channel_id))
-    plt.show()
 
-#-------------------------------------------------------------------------------#
-#                           Get expected time differences                       #
-#-------------------------------------------------------------------------------#
-
-# This is needed to limit the range in which we'll look
-
-simtimes = []
-simtraveltimes = []
-simpaths = []
-
-configh = dict()
-configh['propagation'] = dict(
-    attenuate_ice = True,
-    focusing_limit = 2,
-    focusing = False,
-    radiopropa = dict(
-        mode = 'hybrid minimizing',
-        iter_steps_channel = [25., 2., .5], #unit is meter
-        iter_steps_zenith = [.5, .05, .005], #unit is degree
-        auto_step_size = False,
-        max_traj_length = 10000) #unit is meter
-)
-configh['speedup'] = dict(
-    delta_C_cut = 40 * units.degree
-)
-prop = radioproparaytracing.radiopropa_ray_tracing(medium.greenland_simple(), attenuation_model='GL1',config=configh)
-for detector in Detectors:
-    start_point = Balloon
-    final_point = detector
-    prop.set_start_and_end_point(start_point, final_point)
-    prop.find_solutions()
-    SolNumber = prop.get_number_of_solutions()
-    for Sol in range(SolNumber):
-        simpaths.append(prop.get_path(Sol))
-        simtimes.append(prop.get_travel_time(Sol))
-        SolType = prop.get_solution_type(Sol)
-        x = np.linspace(simpaths[-1][0,0],start_point[0],1000)
-        xlen = x[-1]-x[0]
-        z = np.linspace(simpaths[-1][0,2],start_point[2],1000)
-        zlen = z[-1]-z[0]
-        diagonallen = np.sqrt(xlen*xlen + zlen*zlen) #(m)
-        simtraveltime = simtimes[-1]/units.ns + (diagonallen/c)*(10**9) #ns
-        simtraveltimes.append(simtraveltime)
-
-expected_delta_t = np.zeros((n_channels, n_channels))
-for i in range(n_channels):
-    for j in range(i+1,n_channels):
-        expected_delta_t[i,j] = simtraveltimes[i]-simtraveltimes[j]
-        expected_delta_t[j,i] = simtraveltimes[j]-simtraveltimes[i]
-
-#-------------------------------------------------------------------------------#
-#                           Get observed time differences                       #
-#-------------------------------------------------------------------------------#
-# NOTE: This doesn't seem to work yet
-
-   
-#correlate the correlations, maximum will be offset
-delta_t = np.zeros((n_channels, n_channels))
-for i in range(n_channels):
-    for j in range(i+1,n_channels):
-        corr = radiotools.helper.get_normalized_xcorr(
-                corrs[i],
-                corrs[j] 
-            )
-        t_offsets = (np.arange(
-                    -len(corr) // 2,
-                    len(corr) // 2, dtype=int
-                ) / target_sampling_rate) - (cable_delays[i] - cable_delays[j])
-        peaks, _ = find_peaks(corr, height=0)
-        plt.plot(t_offsets,corr)
-        plt.plot(t_offsets[peaks],corr[peaks],"x")
-        plt.title("correlation of channel {} and channel {}".format(channel_ids[i],channel_ids[j]))
-        plt.show()
-        peaktimes = t_offsets[peaks]
-        for peaktime in peaktimes:
-            if np.abs(peaktime - expected_delta_t[i,j]) < 0.5: 
-                print("difference between channels {} and {} is {}".format(channel_ids[i],channel_ids[j],peaktime))
-                delta_t[i, j] = peaktime
-                delta_t[j, i] = -peaktime
-
-        #delta_t[i, j] = t_offsets[np.argmax(corr)]
-        #delta_t[j, i] = -t_offsets[np.argmax(corr)]
-
+print("detector locations: {}".format(Detectors))
+print("Balloon location: {}".format(Balloon))
+print("traveltimes: {}".format(traveltimes))
 MiddleOfDetectors = np.array([0,0,0])
 for Detector in Detectors:
     MiddleOfDetectors = MiddleOfDetectors + Detector/float(len(Detectors))
 
 NumberOfDetectors = len(Detectors)
+delta_t = np.zeros((NumberOfDetectors,NumberOfDetectors))
 
 #-------------------------------------------------------------------------------#
 #                                   Fit n                                       #
@@ -346,6 +279,7 @@ for number,n in enumerate(indexofrefractionrange):
     for i in range(NumberOfDetectors):
         for j in range(NumberOfDetectors):
             if i < j:
+                delta_t[i][j] = np.abs(traveltimes[i] - traveltimes[j])
                 deltaz = np.linalg.norm(Detectors[i]-Detectors[j])
                 delta_taccenten[i][j] = delta_taccent(thetas,np.abs(deltaz),n)
                 correlation[i][j] = np.abs(delta_t[i][j] - delta_taccenten[i][j])
@@ -385,6 +319,7 @@ summedcorrelation = np.zeros(1000)
 for i in range(NumberOfDetectors):
     for j in range(NumberOfDetectors):
         if i < j:
+            delta_t[i][j] = np.abs(traveltimes[i] - traveltimes[j])
             deltaz = np.linalg.norm(Detectors[i]-Detectors[j])
             delta_taccenten[i][j] = delta_taccent(thetas,np.abs(deltaz),n)
             correlation[i][j] = np.abs(delta_t[i][j] - delta_taccenten[i][j])
