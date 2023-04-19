@@ -22,12 +22,12 @@ from scipy.signal import find_peaks
 
 station_id = 23
 event_id = 1867
-channel_ids = [0,1,2,3]
+channel_ids = [0,3]
 n_channels = len(channel_ids)
-prefix="/home/arthur/Documents/thesis/data"
+prefix="/mnt/usb"
 gpx_file = prefix+"/sonde/gpx/SMT_20220907_112500.gpx"
 GivenTime = "2022/09/07/11/28/10"
-rootfile = prefix+"/interesting/station23/run800/combined.root"
+rootfile = prefix+"/RNO-G-DATA/station23/run800/combined.root"
 
 #-------------------------------------------------------------------------------#
 #                               Colors                                          #
@@ -152,11 +152,14 @@ data_reader.begin(rootfile)
 # get event
 for event in data_reader.run():
     if event.get_id()==event_id:
-        print("found you")
+        FoundEventId=True
         break
+if not FoundEventId:
+    print(f"{bcolors.FAIL}EVENT ID NOT FOUND{bcolors.ENDC}")
+    sys.exit(1)
 
 # get detector information at the specified event time
-det = NuRadioReco.detector.detector.Detector(json_filename="/home/arthur/Documents/thesis/programs/analysis-tools/rnog_analysis_tools/detector_json/RNO_season_2022.json", 
+det = NuRadioReco.detector.detector.Detector(json_filename="/home/arthur/Universiteit/master-proef/analysis-tools/rnog_analysis_tools/detector_json/RNO_season_2022.json", 
                                              antenna_by_depth=False)
 station = event.get_station(station_id)
 det.update(station.get_station_time())
@@ -204,15 +207,15 @@ for i,channel_id in enumerate(channel_ids):
     channel_times = channel.get_times()
     plt.plot(channel_times,channel_voltages,label="measured data")
     lmin,lmax = hl_envelopes_idx(channel_voltages)
-    print("\n")
-    print("-----------------------------")
-    print("Channel {}".format(channel_id))
-    print("-----------------------------")
-    print("cable delay: {}".format(cable_delays[i]))
-    print("-----------------------------")
-    print("Channel sample rate: {}".format(channel_sample_rate))
-    print("-----------------------------")
-    print("\n")
+    #print("\n")
+    #print("-----------------------------")
+    #print("Channel {}".format(channel_id))
+    #print("-----------------------------")
+    #print("cable delay: {}".format(cable_delays[i]))
+    #print("-----------------------------")
+    #print("Channel sample rate: {}".format(channel_sample_rate))
+    #print("-----------------------------")
+    #print("\n")
     plt.xlabel("time (nanoseconds)")
     plt.ylabel("Voltage")
     plt.title("Voltage i.f.o time for channel {}".format(channel_id))
@@ -310,7 +313,7 @@ for i in range(n_channels):
         peaktimes = t_offsets[peaks]
         for peaktime in peaktimes:
             if np.abs(peaktime - expected_delta_t[i,j]) < 0.5: 
-                print("difference between channels {} and {} is {}".format(channel_ids[i],channel_ids[j],peaktime))
+                print("difference between channels {} and {} is {}ns".format(channel_ids[i],channel_ids[j],peaktime))
                 delta_t[i, j] = peaktime
                 delta_t[j, i] = -peaktime
 
@@ -322,6 +325,94 @@ for Detector in Detectors:
     MiddleOfDetectors = MiddleOfDetectors + Detector/float(len(Detectors))
 
 NumberOfDetectors = len(Detectors)
+#-------------------------------------------------------------------------------#
+#                               Find epsilon                                    #
+#-------------------------------------------------------------------------------#
+
+def CalcAngleToGround(a):
+    lena = np.sqrt(np.dot(a,a)) #normalize
+    return np.arccos(np.dot(a,np.array([0,0,-1]))/lena)
+def degrees(SomethingInRads):
+    return SomethingInRads*180/np.pi
+def delta_taccent(theta,deltaz,n):
+    v = c/n
+    return ((np.cos(theta)*deltaz)/v)*(10**9)
+
+
+Epsindexofrefractionrange = np.linspace(1.6,1.9,5000)
+
+Epstraveltimes = []
+Epspaths = []
+Epstimes = []
+Epsdistances = []
+
+ice = medium.greenland_simple()
+prop = radioproparaytracing.radiopropa_ray_tracing(ice, attenuation_model='GL1',config=configh)
+for detector in Detectors:
+    start_point = Balloon
+    final_point = detector
+    prop.set_start_and_end_point(start_point, final_point)
+    prop.find_solutions()
+    SolNumber = prop.get_number_of_solutions()
+    for Sol in range(SolNumber):
+        Epspaths.append(prop.get_path(Sol))
+        Epstimes.append(prop.get_travel_time(Sol))
+        x = np.linspace(Epspaths[-1][0,0],start_point[0],1000)
+        xlen = x[-1]-x[0]
+        z = np.linspace(Epspaths[-1][0,2],start_point[2],1000)
+        zlen = z[-1]-z[0]
+        diagonallen = np.sqrt(xlen*xlen + zlen*zlen) #(m)
+        Epstraveltime = Epstimes[-1]/units.ns + (diagonallen/c)*(10**9) #ns
+        Epstraveltimes.append(Epstraveltime)
+
+
+Epsdifferences = np.zeros(len(Epsindexofrefractionrange))
+
+for number,n in enumerate(Epsindexofrefractionrange):
+    #find plane wave
+    Epsthetas = np.linspace(0,0.9,1000)
+    NumberOfDetectors = len(Detectors)
+    Epsdelta_t = np.zeros((NumberOfDetectors,NumberOfDetectors))
+    Epsdelta_taccenten = np.zeros((NumberOfDetectors,NumberOfDetectors,1000))
+    Epscorrelation = np.zeros((NumberOfDetectors,NumberOfDetectors,1000))
+    Epsnormedcorrelation = np.zeros((NumberOfDetectors,NumberOfDetectors,1000))
+    Epssummedcorrelation = np.zeros(1000)
+
+    for i in range(NumberOfDetectors):
+        for j in range(NumberOfDetectors):
+            if i < j:
+                Epsdelta_t[i][j] = np.abs(Epstraveltimes[i] - Epstraveltimes[j])
+                Epsdeltaz = np.linalg.norm(Detectors[i]-Detectors[j])
+                Epsposition = (Detectors[0] + Detectors[1])/2
+                Epsdelta_taccenten[i][j] = delta_taccent(Epsthetas,np.abs(Epsdeltaz),n)
+                Epscorrelation[i][j] = np.abs(Epsdelta_t[i][j] - Epsdelta_taccenten[i][j])
+                Epsnormedcorrelation[i][j] = Epscorrelation[i][j]/np.trapz(Epscorrelation[i][j],Epsthetas)
+
+                Epssummedcorrelation += Epsnormedcorrelation[i][j]
+
+    Epsangle_index = np.where(Epssummedcorrelation == Epssummedcorrelation.min())
+    Epsangle = Epsthetas[Epsangle_index] #zenith ofc
+    b_ballon = MiddleOfDetectors[2]
+    a_ballon = (Balloon[2]-b_ballon)/Balloon[0]
+    a_planewave = np.tan(np.pi/2-Epsangle)
+    b_planewave = MiddleOfDetectors[2]
+
+    angle_snell = np.arcsin(np.sin(Epsangle)*1.27) 
+    a_snell = np.tan(np.pi/2-angle_snell)
+    b_snell = -1*a_snell*(-1*b_planewave/a_planewave)
+    XopBallonHoogte = (Balloon[2] - b_snell)/a_snell
+    verschil = XopBallonHoogte - Balloon[0]
+
+    Epsdifferences[number] = np.abs(verschil)
+
+Epsn_index = np.where(Epsdifferences == Epsdifferences.min())
+Epsn_fit = Epsindexofrefractionrange[Epsn_index]
+if len(Epsn_fit) > 1:
+    Epsn_fit = Epsn_fit[0]
+Epsdirect_angle = np.pi/2 - np.arctan(a_ballon)
+n_actual = ice.get_index_of_refraction(MiddleOfDetectors)
+
+Epsilon = (100*(Epsn_fit - n_actual)/n_actual)
 
 #-------------------------------------------------------------------------------#
 #                                   Fit n                                       #
@@ -371,10 +462,7 @@ for number,n in enumerate(indexofrefractionrange):
 n_index = np.where(differences == differences.min())
 n = indexofrefractionrange[n_index[0]]
 if len(n) > 1:
-    print("undetermined")
-    print(n)
     n = n[0]
-print(n)
 
 thetas = np.linspace(0,0.9,1000)
 delta_taccenten = np.zeros((NumberOfDetectors,NumberOfDetectors,1000))
@@ -431,4 +519,6 @@ if len(n_fit) > 1:
     n_fit = n_fit[0]
 print("index of refraction from fit at a depth of {}m : {}".format(MiddleOfDetectors[2],n_fit))
 print("index of refraction from exponential model: {}".format(ice.get_index_of_refraction(MiddleOfDetectors)))
+print("Epsilon: {}%".format(Epsilon))
+print("index of refraction from fit after correction with epsilon: {}".format(n_fit/(1+0.01*Epsilon)))
 sys.exit(0)
