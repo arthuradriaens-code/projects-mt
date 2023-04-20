@@ -22,7 +22,7 @@ from scipy.signal import find_peaks
 
 station_id = 23
 event_id = 1867
-channel_ids = [0,3]
+channel_ids = [1,3]
 n_channels = len(channel_ids)
 prefix="/mnt/usb"
 gpx_file = prefix+"/sonde/gpx/SMT_20220907_112500.gpx"
@@ -91,6 +91,17 @@ def hl_envelopes_idx(s, dmin=1, dmax=1, split=False):
     lmax = lmax[[i+np.argmax(s[lmax[i:i+dmax]]) for i in range(0,len(lmax),dmax)]]
     
     return lmin,lmax
+def InSumErrorOnIndex(thetamin,deltaz,C):
+    #timely error is assumed in ns and deltaz in meters
+    c = 0.2997925 #(m/ns)
+    return ((c/(deltaz*np.cos(thetamin)))**2)*(1+C**2)
+def ErrorOnIndex(epsilon,delta_t,summederror):
+    return 2*(1+epsilon*0.01)*delta_t*np.sqrt(summederror)
+def SimpleError(epsilon,delta_t,Delta_z,summedcorr,thetamin):
+    c = 0.2997925 #(m/ns)
+    return 2*c*(1+epsilon*0.01)*delta_t/Delta_z*np.sqrt(summedcorr**2+1)/np.cos(thetamin)
+
+
 configh = dict()
 configh['propagation'] = dict(
     attenuate_ice = True,
@@ -284,8 +295,8 @@ for detector in Detectors:
 expected_delta_t = np.zeros((n_channels, n_channels))
 for i in range(n_channels):
     for j in range(i+1,n_channels):
-        expected_delta_t[i,j] = simtraveltimes[i]-simtraveltimes[j]
-        expected_delta_t[j,i] = simtraveltimes[j]-simtraveltimes[i]
+        expected_delta_t[i][j] = simtraveltimes[i]-simtraveltimes[j]
+        expected_delta_t[j][i] = simtraveltimes[j]-simtraveltimes[i]
 
 #-------------------------------------------------------------------------------#
 #                           Get observed time differences                       #
@@ -308,12 +319,15 @@ for i in range(n_channels):
         peaks, _ = find_peaks(corr, height=0)
         plt.plot(t_offsets,corr)
         plt.plot(t_offsets[peaks],corr[peaks],"x")
-        plt.title("correlation of channel {} and channel {}".format(channel_ids[i],channel_ids[j]))
+        plt.xlabel("time (nanoseconds)")
+        plt.ylabel("correlation")
+        plt.title("correlation of sine correlations of channels {} and {}".format(channel_ids[i],channel_ids[j]))
         plt.show()
         peaktimes = t_offsets[peaks]
         for peaktime in peaktimes:
-            if np.abs(peaktime - expected_delta_t[i,j]) < 0.5: 
+            if np.abs(peaktime - expected_delta_t[i][j]) < 0.5: 
                 print("difference between channels {} and {} is {}ns".format(channel_ids[i],channel_ids[j],peaktime))
+                print("expected difference between channels {} and {} is {}ns".format(channel_ids[i],channel_ids[j],expected_delta_t[i][j]))
                 delta_t[i, j] = peaktime
                 delta_t[j, i] = -peaktime
 
@@ -427,6 +441,7 @@ distances = []
 b_ballon = MiddleOfDetectors[2]
 a_ballon = (Balloon[2]-b_ballon)/Balloon[0]
 
+
 for number,n in enumerate(indexofrefractionrange):
     thetas = np.linspace(0,0.9,1000)
     delta_taccenten = np.zeros((NumberOfDetectors,NumberOfDetectors,1000))
@@ -459,6 +474,9 @@ for number,n in enumerate(indexofrefractionrange):
     differences[number] = np.abs(verschil)
 
 #plot for the n that was found:
+
+UnderSRError = 0
+
 n_index = np.where(differences == differences.min())
 n = indexofrefractionrange[n_index[0]]
 if len(n) > 1:
@@ -477,13 +495,25 @@ for i in range(NumberOfDetectors):
             delta_taccenten[i][j] = delta_taccent(thetas,np.abs(deltaz),n)
             correlation[i][j] = np.abs(delta_t[i][j] - delta_taccenten[i][j])
             normedcorrelation[i][j] = correlation[i][j]/np.trapz(correlation[i][j],thetas)
+
+            #error -->
+            angle_index_err = np.where(normedcorrelation[i][j] == normedcorrelation[i][j].min()) 
+            angle_err = thetas[angle_index] #zenith ofc 
+
+            UnderSRError += InSumErrorOnIndex(angle_err,deltaz,normedcorrelation[i][j].min())
+            #<--
+
             plt.plot(thetas,normedcorrelation[i][j])
             plt.show()
 
             summedcorrelation += normedcorrelation[i][j]
 
+
 angle_index = np.where(summedcorrelation == summedcorrelation.min())
 angle = thetas[angle_index] #zenith ofc
+
+Error = ErrorOnIndex(Epsilon,1/target_sampling_rate,UnderSRError)
+
 angle_snell = np.arcsin(np.sin(angle)*n_icesurface)
 
 x = np.linspace(0,Balloon[0],1000)
@@ -504,7 +534,7 @@ plt.plot(x_snell,y,color="red")
 
 plt.show()
 
-print("minimal difference between timing:")
+print("minimal difference in meters between plane wave and actual:")
 print(differences.min())
 if differences.min() > 1:
     print(f"{bcolors.FAIL}THIS FIT IS NOT USABLE{bcolors.ENDC}")
@@ -520,5 +550,5 @@ if len(n_fit) > 1:
 print("index of refraction from fit at a depth of {}m : {}".format(MiddleOfDetectors[2],n_fit))
 print("index of refraction from exponential model: {}".format(ice.get_index_of_refraction(MiddleOfDetectors)))
 print("Epsilon: {}%".format(Epsilon))
-print("index of refraction from fit after correction with epsilon: {}".format(n_fit/(1+0.01*Epsilon)))
+print("index of refraction from fit after correction with epsilon: {} \u00B1 {}".format(n_fit/(1+0.01*Epsilon),Error[0]))
 sys.exit(0)
