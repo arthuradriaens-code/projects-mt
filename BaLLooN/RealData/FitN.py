@@ -20,14 +20,14 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from scipy.signal import find_peaks
 
-station_id = 23
-event_id = 1867
-channel_ids = [1,3]
+station_id = 21
+event_id = 117
+channel_ids = [5,7]
 n_channels = len(channel_ids)
 prefix="/mnt/usb"
-gpx_file = prefix+"/sonde/gpx/SMT_20220907_112500.gpx"
-GivenTime = "2022/09/07/11/28/10"
-rootfile = prefix+"/RNO-G-DATA/station23/run800/combined.root"
+gpx_file = prefix+"/sonde/gpx/SMT_20220726_111605.gpx"
+GivenTime = "2022/07/26/11/18/41"
+rootfile = prefix+"/RNO-G-DATA/station21/run1441/combined.root"
 
 #-------------------------------------------------------------------------------#
 #                               Colors                                          #
@@ -161,6 +161,7 @@ data_reader.begin(rootfile)
 
 
 # get event
+FoundEventId=False
 for event in data_reader.run():
     if event.get_id()==event_id:
         FoundEventId=True
@@ -306,6 +307,7 @@ for i in range(n_channels):
    
 #correlate the correlations, maximum will be offset
 delta_t = np.zeros((n_channels, n_channels))
+FoundPeak = False
 for i in range(n_channels):
     for j in range(i+1,n_channels):
         corr = radiotools.helper.get_normalized_xcorr(
@@ -325,11 +327,16 @@ for i in range(n_channels):
         plt.show()
         peaktimes = t_offsets[peaks]
         for peaktime in peaktimes:
-            if np.abs(peaktime - expected_delta_t[i][j]) < 0.5: 
+            if np.abs(peaktime - expected_delta_t[i][j]) < 1.2: 
+                FoundPeak=True
                 print("difference between channels {} and {} is {}ns".format(channel_ids[i],channel_ids[j],peaktime))
                 print("expected difference between channels {} and {} is {}ns".format(channel_ids[i],channel_ids[j],expected_delta_t[i][j]))
                 delta_t[i, j] = peaktime
                 delta_t[j, i] = -peaktime
+        if not FoundPeak:
+            print(f"{bcolors.FAIL}EITHER THE SIGNAL FROM CHANNEL {channel_ids[i]} OR {channel_ids[j]} ISN'T USABLE{bcolors.ENDC}")
+            sys.exit(1)
+
 
         #delta_t[i, j] = t_offsets[np.argmax(corr)]
         #delta_t[j, i] = -t_offsets[np.argmax(corr)]
