@@ -20,14 +20,14 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from scipy.signal import find_peaks
 
-station_id = 21
-event_id = 117
-channel_ids = [5,7]
+station_id = 23
+event_id = 489
+channel_ids = [7,13]
 n_channels = len(channel_ids)
 prefix="/mnt/usb"
 gpx_file = prefix+"/sonde/gpx/SMT_20220726_111605.gpx"
 GivenTime = "2022/07/26/11/18/41"
-rootfile = prefix+"/RNO-G-DATA/station21/run1441/combined.root"
+rootfile = prefix+"/RNO-G-DATA/station23/run691/combined.root"
 
 #-------------------------------------------------------------------------------#
 #                               Colors                                          #
