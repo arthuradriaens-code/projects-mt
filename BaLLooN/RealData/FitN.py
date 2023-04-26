@@ -18,16 +18,17 @@ import copy
 import csv
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
+import scipy.optimize as opt
 from scipy.signal import find_peaks
 
 station_id = 23
-event_id = 489
-channel_ids = [7,13]
+event_id = 1867
+channel_ids = [0,1,2,3]
 n_channels = len(channel_ids)
 prefix="/mnt/usb"
-gpx_file = prefix+"/sonde/gpx/SMT_20220726_111605.gpx"
-GivenTime = "2022/07/26/11/18/41"
-rootfile = prefix+"/RNO-G-DATA/station23/run691/combined.root"
+gpx_file = prefix+"/sonde/gpx/SMT_20220907_112500.gpx"
+GivenTime = "2022/09/07/11/28/10"
+rootfile = prefix+"/RNO-G-DATA/station23/run800/combined.root"
 
 #-------------------------------------------------------------------------------#
 #                               Colors                                          #
@@ -100,8 +101,24 @@ def ErrorOnIndex(epsilon,delta_t,summederror):
 def SimpleError(epsilon,delta_t,Delta_z,summedcorr,thetamin):
     c = 0.2997925 #(m/ns)
     return 2*c*(1+epsilon*0.01)*delta_t/Delta_z*np.sqrt(summedcorr**2+1)/np.cos(thetamin)
+def peak(x, c):
+    return np.exp(-np.power(x - c, 2) / 16.0)
 
+def lin_interp(x, y, i, half):
+    return x[i] + (x[i+1] - x[i]) * ((half - y[i]) / (y[i+1] - y[i]))
 
+def half_max_x(x, y):
+    half = max(y)/2.0
+    signs = np.sign(np.add(y, -half))
+    zero_crossings = (signs[0:-2] != signs[1:-1])
+    zero_crossings_i = np.where(zero_crossings)[0]
+    return [lin_interp(x, y, zero_crossings_i[0], half),
+            lin_interp(x, y, zero_crossings_i[1], half)]
+def FWHM(X,Y):
+    hmx = half_max_x(X,Y)
+    FWHM = hmx[1] - hmx[0]
+    return FWHM
+    
 configh = dict()
 configh['propagation'] = dict(
     attenuate_ice = True,
@@ -122,7 +139,7 @@ configh['speedup'] = dict(
 #-------------------------------------------------------------------------------#
 c = 299792458 #(m/s)
 ice = medium.greenland_simple()
-indexofrefractionrange = np.linspace(1.3,1.9,50000)
+indexofrefractionrange = np.linspace(1.45,1.9,10000)
 n_icesurface = ice.get_index_of_refraction(np.array([0,0,-0.00001]))
 
 #-------------------------------------------------------------------------------#
@@ -210,29 +227,20 @@ for i,channel_id in enumerate(channel_ids):
     channel_sample_rate = channel.get_sampling_rate()/units.GHz
     channel_spectrum = channel.get_frequency_spectrum()
     channel_frequencies = channel.get_frequencies()
-    plt.axvline(x=0.403,linestyle='dashed',color="grey")
-    plt.xlabel("Frequency (GHz)")
-    plt.ylabel("Counts")
-    plt.title("Frequency spectrum of channel {}".format(channel_id))
-    plt.plot(channel_frequencies,channel_spectrum)
-    plt.show()
+    #plt.axvline(x=0.403,linestyle='dashed',color="grey")
+    #plt.xlabel("Frequency (GHz)")
+    #plt.ylabel("Counts")
+    #plt.title("Frequency spectrum of channel {}".format(channel_id))
+    #plt.plot(channel_frequencies,channel_spectrum)
+    #plt.show()
     channel_times = channel.get_times()
-    plt.plot(channel_times,channel_voltages,label="measured data")
+    #plt.plot(channel_times,channel_voltages,label="measured data")
     lmin,lmax = hl_envelopes_idx(channel_voltages)
-    #print("\n")
-    #print("-----------------------------")
-    #print("Channel {}".format(channel_id))
-    #print("-----------------------------")
-    #print("cable delay: {}".format(cable_delays[i]))
-    #print("-----------------------------")
-    #print("Channel sample rate: {}".format(channel_sample_rate))
-    #print("-----------------------------")
-    #print("\n")
-    plt.xlabel("time (nanoseconds)")
-    plt.ylabel("Voltage")
-    plt.title("Voltage i.f.o time for channel {}".format(channel_id))
-    plt.legend()
-    plt.show()
+    #plt.xlabel("time (nanoseconds)")
+    #plt.ylabel("Voltage")
+    #plt.title("Voltage i.f.o time for channel {}".format(channel_id))
+    #plt.legend()
+    #plt.show()
     t = np.arange(0,3/(0.403*units.GHz),1/channel_sample_rate)
     amplitude = 0.007
     template = S(t,channel_sample_rate,amplitude)
@@ -243,11 +251,11 @@ for i,channel_id in enumerate(channel_ids):
     )
     corrs.append(corr)
     times = np.linspace(0,len(corr)*(1/channel_sample_rate),len(corr))
-    plt.plot(times,corr)
-    plt.xlabel("time (nanoseconds)")
-    plt.ylabel("correlation")
-    plt.title("correlation i.f.o delta time for channel {}".format(channel_id))
-    plt.show()
+    #plt.plot(times,corr)
+    #plt.xlabel("time (nanoseconds)")
+    #plt.ylabel("correlation")
+    #plt.title("correlation i.f.o delta time for channel {}".format(channel_id))
+    #plt.show()
 
 #-------------------------------------------------------------------------------#
 #                           Get expected time differences                       #
@@ -319,15 +327,15 @@ for i in range(n_channels):
                     len(corr) // 2, dtype=int
                 ) / target_sampling_rate) - (cable_delays[i] - cable_delays[j])
         peaks, _ = find_peaks(corr, height=0)
-        plt.plot(t_offsets,corr)
-        plt.plot(t_offsets[peaks],corr[peaks],"x")
-        plt.xlabel("time (nanoseconds)")
-        plt.ylabel("correlation")
-        plt.title("correlation of sine correlations of channels {} and {}".format(channel_ids[i],channel_ids[j]))
-        plt.show()
+        #plt.plot(t_offsets,corr)
+        #plt.plot(t_offsets[peaks],corr[peaks],"x")
+        #plt.xlabel("time (nanoseconds)")
+        #plt.ylabel("correlation")
+        #plt.title("correlation of sine correlations of channels {} and {}".format(channel_ids[i],channel_ids[j]))
+        #plt.show()
         peaktimes = t_offsets[peaks]
         for peaktime in peaktimes:
-            if np.abs(peaktime - expected_delta_t[i][j]) < 1.2: 
+            if np.abs(peaktime - expected_delta_t[i][j]) < 1.24: 
                 FoundPeak=True
                 print("difference between channels {} and {} is {}ns".format(channel_ids[i],channel_ids[j],peaktime))
                 print("expected difference between channels {} and {} is {}ns".format(channel_ids[i],channel_ids[j],expected_delta_t[i][j]))
@@ -481,6 +489,11 @@ for number,n in enumerate(indexofrefractionrange):
     differences[number] = np.abs(verschil)
 
 #plot for the n that was found:
+plt.plot(indexofrefractionrange/(1+Epsilon*0.01),1/differences)
+plt.xlabel("index of refraction")
+plt.ylabel("1/distance to balloon")
+#plt.title("FWHM: {}".format(FWHM(indexofrefractionrange,1/differences)))
+plt.show()
 
 UnderSRError = 0
 
