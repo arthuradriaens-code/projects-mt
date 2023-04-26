@@ -6,8 +6,8 @@ from NuRadioReco.utilities import units
 import NuRadioReco.modules.io.rno_g.readRNOGData
 from NuRadioReco.modules import channelAddCableDelay
 from gpxplotter import read_gpx_file, create_folium_map, add_segment_to_map
-from NuRadioMC.utilities import medium
-from NuRadioMC.SignalProp import radioproparaytracing
+from NuRadioMC.utilities import medium 
+from NuRadioMC.SignalProp import radioproparaytracing 
 import matplotlib.pyplot as plt
 import os
 from coordinate_system import CoordinateSystem
@@ -20,15 +20,18 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 import scipy.optimize as opt
 from scipy.signal import find_peaks
+from scipy.stats import norm
+from astropy import modeling
 
-station_id = 23
-event_id = 1867
-channel_ids = [0,1,2,3]
+station_id = 21
+event_id = 117
+channel_ids = [6,7]
 n_channels = len(channel_ids)
-prefix="/mnt/usb"
-gpx_file = prefix+"/sonde/gpx/SMT_20220907_112500.gpx"
-GivenTime = "2022/09/07/11/28/10"
-rootfile = prefix+"/RNO-G-DATA/station23/run800/combined.root"
+prefix="/home/arthur/Universiteit/master-proef/data"
+gpx_file = prefix+"/sonde/gpx/SMT_20220726_111605.gpx"
+GivenTime = "2022/07/26/11/18/41"
+rootfile = prefix+"/RNO-G-DATA/station21/run1441/combined.root"
+n_cut = None#[1.73,1.75] #if 2 or more peaks are observed will cut n within this border
 
 #-------------------------------------------------------------------------------#
 #                               Colors                                          #
@@ -489,18 +492,44 @@ for number,n in enumerate(indexofrefractionrange):
     differences[number] = np.abs(verschil)
 
 #plot for the n that was found:
-plt.plot(indexofrefractionrange/(1+Epsilon*0.01),1/differences)
+correctedindices = indexofrefractionrange/(1+Epsilon*0.01)
+inversediffs = 1/differences
+
+plt.plot(correctedindices,inversediffs)
 plt.xlabel("index of refraction")
-plt.ylabel("1/distance to balloon")
-#plt.title("FWHM: {}".format(FWHM(indexofrefractionrange,1/differences)))
+plt.ylabel("1/distance to balloon  ($m^{-1}$)")
+plt.show()
+
+if n_cut:
+    #quick and dirty, could be faster using numpy
+    for index,n in enumerate(correctedindices):
+        if n > n_cut[0]:
+            indexleft = index
+            break
+    for index,n in enumerate(correctedindices[::-1]):
+        if n < n_cut[1]:
+            indexright = len(correctedindices) - index
+            break
+    correctedindices = correctedindices[indexleft:indexright]
+    inversediffs = inversediffs[indexleft:indexright]
+
+plt.plot(correctedindices,inversediffs,label="data")
+plt.xlabel("index of refraction")
+plt.ylabel("1/distance to balloon  ($m^{-1}$)")
+fitter = modeling.fitting.LevMarLSQFitter()
+model = modeling.models.Gaussian1D()   # depending on the data you need to give some initial values
+fitted_model = fitter(model, correctedindices, inversediffs)
+plt.plot(correctedindices, fitted_model(correctedindices),label="gaussian fit")
+print(fitted_model)
+n_fitted = fitted_model.parameters[1]
+n_error = fitted_model.parameters[2]*2 #2 sigma
+plt.title("mean = {0:.4f} and stddev = {1:.4f}".format(fitted_model.parameters[1],fitted_model.parameters[2]))
+plt.legend()
 plt.show()
 
 UnderSRError = 0
 
-n_index = np.where(differences == differences.min())
-n = indexofrefractionrange[n_index[0]]
-if len(n) > 1:
-    n = n[0]
+n = n_fitted
 
 thetas = np.linspace(0,0.9,1000)
 delta_taccenten = np.zeros((NumberOfDetectors,NumberOfDetectors,1000))
@@ -523,8 +552,8 @@ for i in range(NumberOfDetectors):
             UnderSRError += InSumErrorOnIndex(angle_err,deltaz,normedcorrelation[i][j].min())
             #<--
 
-            plt.plot(thetas,normedcorrelation[i][j])
-            plt.show()
+            #plt.plot(thetas,normedcorrelation[i][j])
+            #plt.show()
 
             summedcorrelation += normedcorrelation[i][j]
 
@@ -561,14 +590,8 @@ if differences.min() > 1:
     sys.exit(1)
 else:
     print(f"{bcolors.OKGREEN}This fit might be usable :) {bcolors.ENDC}")
-n_index = np.where(differences == differences.min())
-n_fit = indexofrefractionrange[n_index]
-if len(n_fit) > 1:
-    print("undetermined")
-    print(n_fit)
-    n_fit = n_fit[0]
-print("index of refraction from fit at a depth of {}m : {}".format(MiddleOfDetectors[2],n_fit))
+print("depth = {}m".format(MiddleOfDetectors[2]))
 print("index of refraction from exponential model: {}".format(ice.get_index_of_refraction(MiddleOfDetectors)))
 print("Epsilon: {}%".format(Epsilon))
-print("index of refraction from fit after correction with epsilon: {} \u00B1 {}".format(n_fit/(1+0.01*Epsilon),Error[0]))
+print("index of refraction from fit after correction with epsilon: {} \u00B1 {}".format(n_fitted,n_error))
 sys.exit(0)
