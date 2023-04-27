@@ -25,13 +25,13 @@ from astropy import modeling
 
 station_id = 21
 event_id = 117
-channel_ids = [6,7]
+channel_ids = [5,7]
 n_channels = len(channel_ids)
-prefix="/home/arthur/Universiteit/master-proef/data"
+prefix="/mnt/usb"
 gpx_file = prefix+"/sonde/gpx/SMT_20220726_111605.gpx"
 GivenTime = "2022/07/26/11/18/41"
 rootfile = prefix+"/RNO-G-DATA/station21/run1441/combined.root"
-n_cut = None#[1.73,1.75] #if 2 or more peaks are observed will cut n within this border
+n_cut = [1.665,1.675] #if 2 or more peaks are observed will cut n within this border
 
 #-------------------------------------------------------------------------------#
 #                               Colors                                          #
@@ -142,7 +142,7 @@ configh['speedup'] = dict(
 #-------------------------------------------------------------------------------#
 c = 299792458 #(m/s)
 ice = medium.greenland_simple()
-indexofrefractionrange = np.linspace(1.45,1.9,10000)
+indexofrefractionrange = np.linspace(1.45,1.9,100000)
 n_icesurface = ice.get_index_of_refraction(np.array([0,0,-0.00001]))
 
 #-------------------------------------------------------------------------------#
@@ -516,14 +516,34 @@ if n_cut:
 plt.plot(correctedindices,inversediffs,label="data")
 plt.xlabel("index of refraction")
 plt.ylabel("1/distance to balloon  ($m^{-1}$)")
-fitter = modeling.fitting.LevMarLSQFitter()
-model = modeling.models.Gaussian1D()   # depending on the data you need to give some initial values
-fitted_model = fitter(model, correctedindices, inversediffs)
-plt.plot(correctedindices, fitted_model(correctedindices),label="gaussian fit")
-print(fitted_model)
-n_fitted = fitted_model.parameters[1]
-n_error = fitted_model.parameters[2]*2 #2 sigma
-plt.title("mean = {0:.4f} and stddev = {1:.4f}".format(fitted_model.parameters[1],fitted_model.parameters[2]))
+#fitter = modeling.fitting.LevMarLSQFitter()
+#model = modeling.models.Gaussian1D()   # depending on the data you need to give some initial values
+#fitted_model = fitter(model, correctedindices, inversediffs)
+#plt.plot(correctedindices, fitted_model(correctedindices),label="gaussian fit")
+peaks, _ = find_peaks(inversediffs, height=0)
+n_FittedIndex = peaks[int(len(peaks)/2)]
+n_fitted = correctedindices[n_FittedIndex]
+plt.plot(n_fitted,inversediffs[n_FittedIndex],marker="o",label="fitted index of refraction")
+print("fitted n index:")
+print(n_FittedIndex)
+for index in range(int(len(correctedindices)/2)):
+    total = np.trapz(inversediffs,correctedindices)
+    partial = np.trapz(inversediffs[n_FittedIndex-index:n_FittedIndex+index],correctedindices[n_FittedIndex-index:n_FittedIndex+index])
+    if partial/total > 0.68:
+        n_error68 = correctedindices[n_FittedIndex+index] - correctedindices[n_FittedIndex]
+        n_bounds68 = [n_fitted - correctedindices[n_FittedIndex+index] + correctedindices[n_FittedIndex],n_fitted + correctedindices[n_FittedIndex+index] - correctedindices[n_FittedIndex]]
+        break
+
+for index in range(int(len(correctedindices)/2)):
+    total = np.trapz(inversediffs,correctedindices)
+    partial = np.trapz(inversediffs[n_FittedIndex-index:n_FittedIndex+index],correctedindices[n_FittedIndex-index:n_FittedIndex+index])
+    if partial/total > 0.95:
+        n_error95 = correctedindices[n_FittedIndex+index] - correctedindices[n_FittedIndex]
+        n_bounds95 = [n_fitted - correctedindices[n_FittedIndex+index] + correctedindices[n_FittedIndex],n_fitted + correctedindices[n_FittedIndex+index] - correctedindices[n_FittedIndex]]
+        break
+plt.title("mean = {0:.4f}, 68% error: {1:.4f} and 95% error: {2:.4f}".format(n_fitted,n_error68,n_error95))
+plt.vlines(n_bounds68,0,inversediffs[n_FittedIndex],colors="orange",label="68% bounds")
+plt.vlines(n_bounds95,0,inversediffs[n_FittedIndex],colors="red",label="95% bounds")
 plt.legend()
 plt.show()
 
@@ -593,5 +613,5 @@ else:
 print("depth = {}m".format(MiddleOfDetectors[2]))
 print("index of refraction from exponential model: {}".format(ice.get_index_of_refraction(MiddleOfDetectors)))
 print("Epsilon: {}%".format(Epsilon))
-print("index of refraction from fit after correction with epsilon: {} \u00B1 {}".format(n_fitted,n_error))
+print("index of refraction from fit after correction with epsilon: {} \u00B1 {}".format(n_fitted,n_error68))
 sys.exit(0)
