@@ -27,7 +27,7 @@ Detectors[2] = np.array([0., 0.,-93]) * units.m
 Detectors[3] = np.array([0., 0.,-92]) * units.m
 #Detectors[2] = np.array([0., 0., -93.751]) * units.m
 #Detectors[3] = np.array([0., 0., -94.717]) * units.m
-#plt.plot([0,0,0,0], [-97,-96,-95,-94], 'bo')
+plt.plot([0,0,0,0], [-97,-96,-95,-94], 'bo')
 
 Balloon = np.array([500,0,500])*units.m
 
