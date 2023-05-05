@@ -23,14 +23,14 @@ from scipy.signal import find_peaks
 from scipy.stats import norm
 from astropy import modeling
 
-station_id = 21
-event_id = 117
-channel_ids = [5,7]
+station_id = 11
+event_id = 12397
+channel_ids = [0,1,2,3]
 n_channels = len(channel_ids)
 prefix="/mnt/usb"
-gpx_file = prefix+"/sonde/gpx/SMT_20220726_111605.gpx"
-GivenTime = "2022/07/26/11/18/41"
-rootfile = prefix+"/RNO-G-DATA/station21/run1441/combined.root"
+gpx_file = prefix+"/sonde/gpx/SMT_20220724_231539.gpx"
+GivenTime = "2022/07/24/23/21/53"
+rootfile = prefix+"/RNO-G-DATA/station11/run1034/combined.root"
 n_cut = [1.665,1.675] #if 2 or more peaks are observed will cut n within this border
 
 #-------------------------------------------------------------------------------#
