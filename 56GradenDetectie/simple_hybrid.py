@@ -39,7 +39,7 @@ configh['speedup'] = dict(
 
 prop = radioproparaytracing.radiopropa_ray_tracing(medium.greenland_simple(), attenuation_model='GL1',config=configh)
 
-start_point = np.array([ 482.80938104,0.,-105.50417894])*units.m
+start_point = np.array([482.80938104,0.,-205.50417894])*units.m
 prop.set_start_and_end_point(start_point, final_point)
 prop.find_solutions()
 SolNumber = prop.get_number_of_solutions()

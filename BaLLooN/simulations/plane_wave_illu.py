@@ -11,6 +11,10 @@ def CalcAngleToGround(a):
     return np.arccos(np.dot(a,np.array([0,0,-1]))/lena)
 def degreetorad(deg):
     return deg*np.pi/180
+def delta_taccent(theta,deltaz,position):
+    n = ice.get_index_of_refraction(position)
+    v = c/n
+    return ((np.cos(theta)*deltaz)/v)*(10**9)
 
 c = 299792458 #(m/s)
 ice = medium.greenland_simple()
@@ -25,7 +29,7 @@ Detectors[2] = np.array([0., 0., -95.]) * units.m
 Detectors[3] = np.array([0., 0., -94.]) * units.m
 plt.plot([0,0,0,0], [-97,-96,-95,-94], 'bo')
 
-Balloon = np.array([ 500.0,0.,500.0])*units.m
+Balloon = np.array([ 50.0,0.,500.0])*units.m
 
 
 traveltimes = []
@@ -85,10 +89,6 @@ plt.legend()
 plt.axhline(y=0, color='black', linestyle='-')
 plt.show()
 
-def delta_taccent(theta,deltaz,position):
-    n = ice.get_index_of_refraction(position)
-    v = c/n
-    return ((np.cos(theta)*deltaz)/v)*(10**9)
 
 thetas = np.linspace(0,np.pi/2,1000)
 NumberOfDetectors = len(Detectors)
@@ -106,9 +106,8 @@ for i in range(NumberOfDetectors):
             position = np.array([0,0,-95.5])
             delta_taccenten[i][j] = delta_taccent(thetas,np.abs(deltaz),position)
             correlation[i][j] = np.abs(delta_t[i][j] - delta_taccenten[i][j])
-            normedcorrelation[i][j] = correlation[i][j]/np.trapz(correlation[i][j],thetas)
 
-            summedcorrelation += normedcorrelation[i][j]
+            summedcorrelation += correlation[i][j]
             plt.plot(thetas,normedcorrelation[i][j],label="{}{}".format(i,j))
 
 plt.xlabel("theta (rad)")
@@ -154,5 +153,5 @@ print("direct angle")
 direct_angle = np.pi/2 - np.arctan(a_ballon)
 print(direct_angle)
 print("difference in angle between direct to balloon and plane wave reconstruction:")
-print("{}%".format((direct_angle - angle)/angle))
+print("{}%".format(((direct_angle - angle)/angle)*100))
 

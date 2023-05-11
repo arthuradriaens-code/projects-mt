@@ -492,28 +492,27 @@ for number,n in enumerate(indexofrefractionrange):
     differences[number] = np.abs(verschil)
 
 #plot for the n that was found:
-correctedindices = indexofrefractionrange/(1+Epsilon*0.01)
 inversediffs = 1/differences
 
-plt.plot(correctedindices,inversediffs)
+plt.plot(indexofrefractionrange,inversediffs)
 plt.xlabel("index of refraction")
 plt.ylabel("1/distance to balloon  ($m^{-1}$)")
 plt.show()
 
 if n_cut:
     #quick and dirty, could be faster using numpy
-    for index,n in enumerate(correctedindices):
+    for index,n in enumerate(indexofrefractionrange):
         if n > n_cut[0]:
             indexleft = index
             break
-    for index,n in enumerate(correctedindices[::-1]):
+    for index,n in enumerate(indexofrefractionrange[::-1]):
         if n < n_cut[1]:
-            indexright = len(correctedindices) - index
+            indexright = len(indexofrefractionrange) - index
             break
-    correctedindices = correctedindices[indexleft:indexright]
+    indexofrefractionrange = indexofrefractionrange[indexleft:indexright]
     inversediffs = inversediffs[indexleft:indexright]
 
-plt.plot(correctedindices,inversediffs,label="data")
+plt.plot(indexofrefractionrange,inversediffs,label="data")
 plt.xlabel("index of refraction")
 plt.ylabel("1/distance to balloon  ($m^{-1}$)")
 #fitter = modeling.fitting.LevMarLSQFitter()
@@ -522,24 +521,24 @@ plt.ylabel("1/distance to balloon  ($m^{-1}$)")
 #plt.plot(correctedindices, fitted_model(correctedindices),label="gaussian fit")
 peaks, _ = find_peaks(inversediffs, height=0)
 n_FittedIndex = peaks[int(len(peaks)/2)]
-n_fitted = correctedindices[n_FittedIndex]
+n_fitted = indexofrefractionrange[n_FittedIndex]
 plt.plot(n_fitted,inversediffs[n_FittedIndex],marker="o",label="fitted index of refraction")
 print("fitted n index:")
 print(n_FittedIndex)
-for index in range(int(len(correctedindices)/2)):
-    total = np.trapz(inversediffs,correctedindices)
-    partial = np.trapz(inversediffs[n_FittedIndex-index:n_FittedIndex+index],correctedindices[n_FittedIndex-index:n_FittedIndex+index])
+for index in range(int(len(indexofrefractionrange)/2)):
+    total = np.trapz(inversediffs,indexofrefractionrange)
+    partial = np.trapz(inversediffs[n_FittedIndex-index:n_FittedIndex+index],indexofrefractionrange[n_FittedIndex-index:n_FittedIndex+index])
     if partial/total > 0.68:
-        n_error68 = correctedindices[n_FittedIndex+index] - correctedindices[n_FittedIndex]
-        n_bounds68 = [n_fitted - correctedindices[n_FittedIndex+index] + correctedindices[n_FittedIndex],n_fitted + correctedindices[n_FittedIndex+index] - correctedindices[n_FittedIndex]]
+        n_error68 = indexofrefractionrange[n_FittedIndex+index] - indexofrefractionrange[n_FittedIndex]
+        n_bounds68 = [n_fitted - indexofrefractionrange[n_FittedIndex+index] + indexofrefractionrange[n_FittedIndex],n_fitted + indexofrefractionrange[n_FittedIndex+index] - indexofrefractionrange[n_FittedIndex]]
         break
 
-for index in range(int(len(correctedindices)/2)):
-    total = np.trapz(inversediffs,correctedindices)
-    partial = np.trapz(inversediffs[n_FittedIndex-index:n_FittedIndex+index],correctedindices[n_FittedIndex-index:n_FittedIndex+index])
+for index in range(int(len(indexofrefractionrange)/2)):
+    total = np.trapz(inversediffs,indexofrefractionrange)
+    partial = np.trapz(inversediffs[n_FittedIndex-index:n_FittedIndex+index],indexofrefractionrange[n_FittedIndex-index:n_FittedIndex+index])
     if partial/total > 0.95:
-        n_error95 = correctedindices[n_FittedIndex+index] - correctedindices[n_FittedIndex]
-        n_bounds95 = [n_fitted - correctedindices[n_FittedIndex+index] + correctedindices[n_FittedIndex],n_fitted + correctedindices[n_FittedIndex+index] - correctedindices[n_FittedIndex]]
+        n_error95 = indexofrefractionrange[n_FittedIndex+index] - indexofrefractionrange[n_FittedIndex]
+        n_bounds95 = [n_fitted - indexofrefractionrange[n_FittedIndex+index] + indexofrefractionrange[n_FittedIndex],n_fitted + indexofrefractionrange[n_FittedIndex+index] - indexofrefractionrange[n_FittedIndex]]
         break
 plt.title("mean = {0:.4f}, 68% error: {1:.4f} and 95% error: {2:.4f}".format(n_fitted,n_error68,n_error95))
 plt.vlines(n_bounds68,0,inversediffs[n_FittedIndex],colors="orange",label="68% bounds")
