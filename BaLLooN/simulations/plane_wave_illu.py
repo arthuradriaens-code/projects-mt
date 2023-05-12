@@ -81,7 +81,7 @@ for detector in Detectors:
         plt.plot(x,z,color='orange')
         traveltime = times[-1]/units.ns + (diagonallen/c)*(10**9) #ns
         traveltimes.append(traveltime)
-        plt.plot(paths[-1][:,0],paths[-1][:,2],label="travel time = {0:.2f} nanoseconds".format(traveltime) ,color="orange")
+        plt.plot(paths[-1][:,0],paths[-1][:,2],label="t = {0:.2f} ns".format(traveltime) ,color="orange")
 plt.ylabel("vertical distance (m)")
 plt.xlabel("horizontal distance (m)")
 plt.title("Greenland simple trajectory with GL1 attenuation\n solved with hybrid ray tracer")

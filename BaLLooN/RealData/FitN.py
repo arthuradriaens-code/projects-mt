@@ -25,14 +25,14 @@ from scipy.signal import peak_widths
 from scipy.stats import norm
 from astropy import modeling 
 
-station_id = 21
-event_id = 117
-channel_ids = [5,7]
+station_id = 13
+event_id = 3118
+channel_ids = [0,1,2,3]
 n_channels = len(channel_ids)
 prefix="/mnt/usb"
-gpx_file = prefix+"/sonde/gpx/SMT_20220726_111605.gpx"
-GivenTime = "2022/07/26/11/18/41"
-rootfile = prefix+"/RNO-G-DATA/station21/run1441/combined.root"
+gpx_file = prefix+"/sonde/gpx/SMT_20220908_111450.gpx"
+GivenTime = "2022/09/08/11/24/08"
+rootfile = prefix+"/RNO-G-DATA/station13/run794/combined.root"
 
 #-------------------------------------------------------------------------------#
 #                               Colors                                          #
@@ -294,6 +294,12 @@ for i,channel_id in enumerate(channel_ids):
     #plt.show()
 
 NumberOfDetectors = len(Detectors)
+delta_z = np.zeros((NumberOfDetectors,NumberOfDetectors))
+
+for i in range(NumberOfDetectors):
+    for j in range(NumberOfDetectors):
+        if i < j:
+            delta_z[i][j] = np.linalg.norm(Detectors[i]-Detectors[j])
 
 #-------------------------------------------------------------------------------#
 #                           Get expected time differences                       #
@@ -372,7 +378,9 @@ for i in range(n_channels):
         #plt.ylabel("correlation")
         #plt.title("correlation of sine correlations of channels {} and {}".format(channel_ids[i],channel_ids[j]))
         #plt.show()
+
         peaktimes = t_offsets[peaks]
+        
         for k,peaktime in enumerate(peaktimes):
             if (peaktime > 0) and (np.abs(peaktime - expected_delta_t[i][j]) < 1.24): 
                 FoundPeak=True
@@ -455,12 +463,7 @@ b_ballon = MiddleOfDetectors[2]
 a_ballon = (Balloon[2]-b_ballon)/Balloon[0]
 theta_b = np.pi/2 - np.arctan(a_ballon)
 
-delta_z = np.zeros((NumberOfDetectors,NumberOfDetectors))
 
-for i in range(NumberOfDetectors):
-    for j in range(NumberOfDetectors):
-        if i < j:
-            delta_z[i][j] = np.linalg.norm(Detectors[i]-Detectors[j])
 
 root = opt.minimize(fsq,x0=n_guess,args=(NumberOfDetectors,theta_b,delta_t,delta_z),method='Nelder-Mead')
 Finalf = np.abs(f(root.x,NumberOfDetectors,theta_b,delta_t,delta_z))[0]
