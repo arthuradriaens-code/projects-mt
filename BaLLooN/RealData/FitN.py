@@ -25,14 +25,14 @@ from scipy.signal import peak_widths
 from scipy.stats import norm
 from astropy import modeling 
 
-station_id = 11
-event_id = 12397
-channel_ids = [0,2,3]
+station_id = 21
+event_id = 117
+channel_ids = [5,7]
 n_channels = len(channel_ids)
 prefix="/mnt/usb"
-gpx_file = prefix+"/sonde/gpx/SMT_20220724_231539.gpx"
-GivenTime = "2022/07/24/23/21/53"
-rootfile = prefix+"/RNO-G-DATA/station11/run1034/combined.root"
+gpx_file = prefix+"/sonde/gpx/SMT_20220726_111605.gpx"
+GivenTime = "2022/07/26/11/18/41"
+rootfile = prefix+"/RNO-G-DATA/station21/run1441/combined.root"
 
 #-------------------------------------------------------------------------------#
 #                               Colors                                          #
@@ -480,6 +480,6 @@ else:
 
 print("--------------------------------------------------------------------------")
 print("|     Depth (m)    |    n_exponential    |           n_fitted            |")
-print("|     {0:1.5f}    |       {1:1.5f}       |    {2:1.5f}\u00B1{3:.5f}\u00B1{4:.5f}    |".format(MiddleOfDetectors[2],ice.get_index_of_refraction(MiddleOfDetectors),n_fitted,Epsilon[0]*0.01*n_fitted,n_error68))
+print("|     {0:1.5f}    |       {1:1.5f}       |    {2:1.5f}\u00B1{3:.5f}\u00B1{4:.5f}    |".format(MiddleOfDetectors[2],ice.get_index_of_refraction(MiddleOfDetectors),n_fitted,np.abs(Epsilon[0])*0.01*n_fitted,n_error68))
 print("--------------------------------------------------------------------------")
 sys.exit(0)
