@@ -1,1 +1,1 @@
-plot "total.txt" u 1:2 title "density measurements" lc "grey", f(x) title "single exponential", "FromBalloon.txt" u 1:2:3 lw 2 pt 0.5 with yerrorbars title "data from balloon passbys"
+plot "total.txt" u 1:(n($2)) lc "grey" title "index from density data", "Trustworthy.txt" u 1:2:3 lw 2 pt 0.5 with yerrorbars title "data from balloon passbys"
