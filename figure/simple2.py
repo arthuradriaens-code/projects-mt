@@ -9,15 +9,6 @@ logging.basicConfig()
 logger = logging.getLogger('ray_tracing_modules')
 
 # Let us work on the y = 0 plane
-final_point1 = np.array( [0., 0., -40.] ) * units.m
-rectangle1 = plt.Rectangle((-8,-45), 16, 10, fc='blue')
-plt.gca().add_patch(rectangle1)
-final_point2 = np.array( [0., 0., -60.] ) * units.m
-rectangle2 = plt.Rectangle((-8,-65), 16, 10, fc='blue')
-plt.gca().add_patch(rectangle2)
-final_point3 = np.array( [0., 0., -80.] ) * units.m
-rectangle3 = plt.Rectangle((-8,-85), 16, 10, fc='blue')
-plt.gca().add_patch(rectangle3)
 final_point4 = np.array( [0., 0., -95.] ) * units.m
 rectangle4 = plt.Rectangle((-8,-100), 16, 10, fc='blue')
 plt.gca().add_patch(rectangle4)
@@ -25,8 +16,9 @@ plt.gca().add_patch(rectangle4)
 x1, y1 = [0, 0], [0, -95]
 plt.plot(x1, y1, marker = '.', color='black')
 plt.plot(800, -400, marker = 'x', color='red')
+plt.axhline(y=0, color='grey',linestyle="--")
 
-final_points = [final_point1,final_point2,final_point3,final_point4]
+final_points = [final_point4]
 def CalcAngleToGround(a):
     lena = np.sqrt(np.dot(a,a)) #normalize
     return np.arccos(np.dot(a,np.array([0,0,-1]))/lena)

@@ -29,7 +29,7 @@ SolNumber = prop.get_number_of_solutions()
 for Sol in range(SolNumber):
     paths.append(prop.get_path(Sol))
     times.append(prop.get_travel_time(Sol))
-    plt.plot(np.abs(paths[-1][:,0]),paths[-1][:,2],label="travel time = {0:.2f} nanoseconds".format(times[-1]/units.ns))
+    plt.plot(np.abs(paths[-1][:,0]),paths[-1][:,2],label="travel time = {0:.2f} ns".format(times[-1]/units.ns))
     SolType = prop.get_solution_type(Sol)
     if SolType == 1:
         print('1 direct ray')
@@ -47,7 +47,7 @@ x_No = np.arange(0,xendnobend,0.1)
 y_No = rico_a_NoBend*x_No + rico_b_NoBend
 
 plt.gca().invert_xaxis()
-plt.title("Greenland simple trajectory with GL1 attenuation\n solved with analytic ray tracer")
+#plt.title("Greenland simple trajectory with GL1 attenuation\n solved with analytic ray tracer")
 
 plt.legend()
 plt.show()
