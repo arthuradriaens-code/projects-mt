@@ -53,7 +53,7 @@ configh['speedup'] = dict(
     delta_C_cut = 40 * units.degree
 )
 
-plt.plot([Balloon[0]], [Balloon[2]], 'bo')
+plt.plot([Balloon[0]], [Balloon[2]], 'ro')
 
 prop = radioproparaytracing.radiopropa_ray_tracing(ice, attenuation_model='GL1',config=configh)
 for detector in Detectors:
@@ -81,10 +81,10 @@ for detector in Detectors:
         plt.plot(x,z,color='orange')
         traveltime = times[-1]/units.ns + (diagonallen/c)*(10**9) #ns
         traveltimes.append(traveltime)
-        plt.plot(paths[-1][:,0],paths[-1][:,2],label="t = {0:.2f} ns".format(traveltime) ,color="orange")
+        plt.plot(paths[-1][:,0],paths[-1][:,2],label="z = {0:.2f}, t = {1:.2f} ns".format(detector[2],traveltime) ,color="orange")
 plt.ylabel("vertical distance (m)")
 plt.xlabel("horizontal distance (m)")
-plt.title("Greenland simple trajectory with GL1 attenuation\n solved with hybrid ray tracer")
+plt.title("Balloon to detector ray path solved with hybrid ray tracer")
 plt.legend()
 plt.axhline(y=0, color='black', linestyle='-')
 plt.show()

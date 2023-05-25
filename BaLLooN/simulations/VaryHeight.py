@@ -3,6 +3,7 @@ from NuRadioMC.utilities import medium
 from NuRadioReco.utilities import units
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy import optimize
 import logging
 logging.basicConfig()
 from alive_progress import alive_bar
@@ -10,16 +11,28 @@ from alive_progress import alive_bar
 def CalcAngleToGround(a):
     lena = np.sqrt(np.dot(a,a)) #normalize
     return np.arccos(np.dot(a,np.array([0,0,-1]))/lena)
-def degreetorad(deg):
-    return deg*np.pi/180
+def degrees(SomethingInRads):
+    return SomethingInRads*180/np.pi
+def delta_taccent(theta,deltaz,n):
+    v = c/n
+    return ((np.cos(theta)*deltaz)/v)*(10**9)
+def eta(n,delta_t_observed,theta_b,delta_z):
+    delta_t_computed = delta_taccent(theta_b,delta_z,n)
+    return delta_t_observed - delta_t_computed
+def f(n,NumberOfDetectors,theta_b,delta_t,delta_z):
+    fvar = 0
+    for i in range(NumberOfDetectors):
+        for j in range(NumberOfDetectors):
+            if i < j:
+                fvar += eta(n,delta_t[i][j],theta_b,delta_z[i][j])**2
+    return fvar
+ 
 
 c = 299792458 #(m/s)
 ice = medium.greenland_simple()
 
 logger = logging.getLogger('ray_tracing_modules')
 
-def degrees(SomethingInRads):
-    return SomethingInRads*180/np.pi
 
 # Let us work on the y = 0 plane
 Detectors = np.zeros((4,3))
@@ -57,7 +70,7 @@ with alive_bar(len(zcoordinates),title='Calculating relative angles',length=20,b
             paths = []
             times = []
             distances = []
-            Balloon = np.array([xcoordinate,0.,zcoordinate])*units.m
+            Balloon = np.array([xcoordinate,0.,500.0])*units.m
             prop = radioproparaytracing.radiopropa_ray_tracing(ice, attenuation_model='GL1',config=configh)
             for detector in Detectors:
                 start_point = Balloon
@@ -76,64 +89,36 @@ with alive_bar(len(zcoordinates),title='Calculating relative angles',length=20,b
                     traveltime = times[-1]/units.ns + (diagonallen/c)*(10**9) #ns
                     traveltimes.append(traveltime)
 
-            def delta_taccent(theta,deltaz,n):
-                v = c/n
-                return ((np.cos(theta)*deltaz)/v)*(10**9)
+            NumberOfDetectors = len(Detectors)
+            delta_t = np.zeros((NumberOfDetectors,NumberOfDetectors))
+            delta_z = np.zeros((NumberOfDetectors,NumberOfDetectors))
 
-            differences = np.zeros(len(indexofrefractionrange))
+            for i in range(NumberOfDetectors):
+                for j in range(NumberOfDetectors):
+                    if i < j:
+                        delta_t[i][j] = traveltimes[i] - traveltimes[j]
+                        delta_z[i][j] = np.linalg.norm(Detectors[i]-Detectors[j])
+            
+            position = np.array([0,0,-95.5])
+            n_actual = ice.get_index_of_refraction(position)
+            print("actual n:")
+            print(n_actual)
+            b_ballon = -95.5
+            a_ballon = (Balloon[2]-b_ballon)/Balloon[0]
+            theta_b = np.pi/2 - np.arctan(a_ballon)
+            
+            root = optimize.minimize(f,x0=n_actual-0.1,args=(NumberOfDetectors,theta_b,delta_t,delta_z),method='Nelder-Mead')
 
-            for number,n in enumerate(indexofrefractionrange):
-                #find plane wave
-                thetas = np.linspace(0,0.9,1000)
-                NumberOfDetectors = len(Detectors)
-                delta_t = np.zeros((NumberOfDetectors,NumberOfDetectors))
-                delta_taccenten = np.zeros((NumberOfDetectors,NumberOfDetectors,1000))
-                correlation = np.zeros((NumberOfDetectors,NumberOfDetectors,1000))
-                normedcorrelation = np.zeros((NumberOfDetectors,NumberOfDetectors,1000))
-                summedcorrelation = np.zeros(1000)
-
-                for i in range(NumberOfDetectors):
-                    for j in range(NumberOfDetectors):
-                        if i < j:
-                            delta_t[i][j] = traveltimes[i] - traveltimes[j]
-                            deltaz = np.linalg.norm(Detectors[i]-Detectors[j])
-                            position = np.array([0,0,-95.5])
-                            delta_taccenten[i][j] = delta_taccent(thetas,np.abs(deltaz),n)
-                            correlation[i][j] = np.abs(delta_t[i][j] - delta_taccenten[i][j])
-                            normedcorrelation[i][j] = correlation[i][j]/np.trapz(correlation[i][j],thetas)
-
-                            summedcorrelation += normedcorrelation[i][j]
-
-                angle_index = np.where(summedcorrelation == summedcorrelation.min())
-                angle = thetas[angle_index] #zenith ofc
-                b_ballon = -95.5
-                a_ballon = (Balloon[2]-b_ballon)/Balloon[0]
-                a_planewave = np.tan(np.pi/2-angle)
-                b_planewave = -95.5
-
-                angle_snell = np.arcsin(np.sin(angle)*1.27)
-                a_snell = np.tan(np.pi/2-angle_snell)
-                b_snell = -1*a_snell*(-1*b_planewave/a_planewave)
-                XopBallonHoogte = (Balloon[2] - b_snell)/a_snell
-                verschil = XopBallonHoogte - Balloon[0]
-
-                differences[number] = np.abs(verschil)
-
-            n_index = np.where(differences == differences.min())
-            n_fit = indexofrefractionrange[n_index]
+            n_fit = root.x
             if len(n_fit) > 1:
                 print("undetermined")
                 print(n_fit)
                 n_fit = n_fit[0]
+
+            print("fitted n:")
             print(n_fit)
 
-            position = np.array([0,0,-95.5])
-            direct_angle = np.pi/2 - np.arctan(a_ballon)
-
-            n_actual = ice.get_index_of_refraction(position)
-            print(n_actual)
-
-            BalloonAngle[s] = degrees(direct_angle)
+            BalloonAngle[s] = degrees(theta_b)
             RelativeAccuracy[s] = 100*(n_fit - n_actual)/n_actual
 
         bar()
